@@ -7,7 +7,39 @@ radius = 10.0
 height = 42.0
 
 [node name="Hunter" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
 script = ExtResource("1_hunter")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape_hunter")
+
+[node name="Sensors" type="Node2D" parent="."]
+
+[node name="LeftWallRay" type="RayCast2D" parent="Sensors"]
+target_position = Vector2(-26, 0)
+collision_mask = 1
+exclude_parent = true
+
+[node name="RightWallRay" type="RayCast2D" parent="Sensors"]
+target_position = Vector2(26, 0)
+collision_mask = 1
+exclude_parent = true
+
+[node name="LeftHeadRay" type="RayCast2D" parent="Sensors"]
+position = Vector2(0, -24)
+target_position = Vector2(-26, 0)
+collision_mask = 1
+exclude_parent = true
+
+[node name="RightHeadRay" type="RayCast2D" parent="Sensors"]
+position = Vector2(0, -24)
+target_position = Vector2(26, 0)
+collision_mask = 1
+exclude_parent = true
+
+[node name="CeilingRay" type="RayCast2D" parent="Sensors"]
+position = Vector2(0, -6)
+target_position = Vector2(0, -25)
+collision_mask = 1
+exclude_parent = true

@@ -8,9 +8,22 @@ The defining rule is simple:
 
 > An agent is never merely dialogue. If it inhabits the world, it can act upon the world.
 
-## NC-001 status
+## Current milestone: NC-002 — Hunter Controller
 
-This branch establishes the Godot 4 project skeleton and the first governed action path:
+NC-002 turns the skeleton into the first playable movement lab.
+
+The Hunter now supports:
+
+- run with acceleration and braking
+- jump buffering and coyote time
+- short-hop jump release
+- crouch with a reduced collider
+- wall slide
+- wall kick
+- ledge grab and controlled release
+- a governed human input adapter that never writes directly to Hunter velocity
+
+The control path remains:
 
 ```text
 Human / Gamepad / Agent / Network / Replay / Script
@@ -28,7 +41,7 @@ Human / Gamepad / Agent / Network / Replay / Script
                     RECEIPT
 ```
 
-The boot scene is deliberately tiny. Press **P** while it is running to submit a governed `PING` action for Φ-Bot and watch the receipt return through the same path future agent actions will use.
+NC-002 is intentionally still a movement lab. **NC-003** turns it into the first sewer traversal greybox with camera, checkpoints, and room flow.
 
 ## Quick start
 
@@ -36,9 +49,18 @@ The boot scene is deliberately tiny. Press **P** while it is running to submit a
 2. Clone this repository.
 3. Import `project.godot`.
 4. Run the project.
-5. Press **P** to exercise the NC-001 action/authority/receipt smoke path.
 
-No external model or network service is required for NC-001.
+### Controls
+
+| Input | Action |
+|---|---|
+| A / Left Arrow | Move left |
+| D / Right Arrow | Move right |
+| Space / W / Up Arrow | Jump / wall kick |
+| S / Down Arrow | Crouch / drop from ledge |
+| P | Governed Φ-Bot PING smoke action |
+
+The human input adapter registers these keyboard bindings at runtime if the actions do not already exist. That keeps the controller logic behind the same action seam that future remapping and agent adapters will use.
 
 ## Design pillars
 

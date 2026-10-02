@@ -7,7 +7,9 @@ REQUIRED = [
     "project.godot",
     "game/main/Main.tscn",
     "game/main/main.gd",
+    "game/input/human_input_adapter.gd",
     "game/actors/hunter/hunter.gd",
+    "game/actors/hunter/Hunter.tscn",
     "game/actors/phi_bot/phi_bot.gd",
     "protocol/action_bus/action_bus.gd",
     "protocol/authority/authority_gate.gd",
@@ -16,13 +18,14 @@ REQUIRED = [
     "docs/GAME_DESIGN.md",
     "docs/PLAYER_PROTOCOL.md",
     "docs/ARCHITECTURE.md",
+    "docs/MOVEMENT.md",
     "docs/VERTICAL_SLICE.md",
     "docs/ROADMAP.md",
 ]
 
 missing = [path for path in REQUIRED if not (ROOT / path).is_file()]
 if missing:
-    print("Missing required NC-001 files:")
+    print("Missing required Night Circuit files:")
     for path in missing:
         print(f"  - {path}")
     sys.exit(1)
@@ -48,4 +51,4 @@ for token in ("source", "actor", "action", "payload", "accepted", "reason"):
         print(f"Player Protocol is missing required token: {token}")
         sys.exit(1)
 
-print("NC-001 structure validation: PASS")
+print("Night Circuit structure validation: PASS")

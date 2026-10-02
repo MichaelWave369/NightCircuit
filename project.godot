@@ -1,0 +1,29 @@
+; Engine configuration file.
+; Edit through Godot when practical.
+config_version=5
+
+[application]
+
+config/name="Φ: Night Circuit"
+config/description="An agent-native Metroidvania."
+run/main_scene="res://game/main/Main.tscn"
+
+[autoload]
+
+ActionBus="*res://protocol/action_bus/action_bus.gd"
+AuthorityGate="*res://protocol/authority/authority_gate.gd"
+ReceiptLedger="*res://protocol/receipts/receipt_ledger.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.012, 0.016, 0.027, 1)

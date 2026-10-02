@@ -1,0 +1,27 @@
+# Roadmap
+
+## Vertical-slice ladder
+
+| Rung | Goal | Exit condition |
+|---|---|---|
+| NC-001 | Project skeleton | Godot project boots; governed PING returns a receipt |
+| NC-002 | Hunter controller | run, jump, crouch, ledge grab, wall kick |
+| NC-003 | Sewer test room | traversal greybox with camera and checkpoints |
+| NC-004 | Combat | light/heavy/dodge + damage contract |
+| NC-005 | Φ-Bot entity | follow, hold, light, inspect |
+| NC-006 | Action Bus hardening | typed actions, actor execution, effect receipts |
+| NC-007 | Φ Player Protocol | observation/action schemas and adapter boundary |
+| NC-008 | Agent seat | local external agent can control Φ-Bot safely |
+| NC-009 | Ash Village | NPC schedules and first hub loop |
+| NC-010 | Day/night | state transition changes routes and actors |
+| NC-011 | Reality Ledger | evidence, claims, provenance, contradictions |
+| NC-012 | The Fallen | complete first boss encounter |
+| NC-013 | Scout Core | ping, mark, enemy read, contradiction sense |
+| NC-014 | Backtracking loop | Scout opens meaningful old-route discoveries |
+| NC-015 | Vertical Slice 0.1 | The Drain is playable start to finish |
+
+## Rule
+
+Do not expand into the full castle before NC-015 passes.
+
+Feature creep already has enough employment opportunities.

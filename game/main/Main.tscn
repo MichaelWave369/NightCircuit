@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://game/main/main.gd" type="Script" id="1_main"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD"]
+offset_left = 36.0
+offset_top = 30.0
+offset_right = 890.0
+offset_bottom = 248.0
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer"]
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.82, 0.91, 1, 1)
+theme_override_font_sizes/font_size = 34
+text = "Φ: NIGHT CIRCUIT"
+
+[node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
+theme_override_font_sizes/font_size = 18
+text = "NC-001 // PROJECT SKELETON"
+
+[node name="Status" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.66, 0.86, 0.75, 1)
+text = "ACTION BUS: ONLINE   |   AUTHORITY: GOVERNED   |   RECEIPTS: ONLINE"
+
+[node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
+text = "Press P to send a governed Φ-Bot PING action."
+
+[node name="ReceiptLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.94, 0.82, 0.56, 1)
+text = "RECEIPT: waiting"

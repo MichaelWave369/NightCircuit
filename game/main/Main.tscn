@@ -1,104 +1,58 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource path="res://game/main/main.gd" type="Script" id="1_main"]
 [ext_resource path="res://game/actors/hunter/Hunter.tscn" type="PackedScene" id="2_hunter"]
 [ext_resource path="res://game/input/human_input_adapter.gd" type="Script" id="3_input"]
-
-[sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(1280, 100)
-
-[sub_resource type="RectangleShape2D" id="BoundaryShape"]
-size = Vector2(40, 720)
-
-[sub_resource type="RectangleShape2D" id="LedgeBlockShape"]
-size = Vector2(280, 160)
-
-[sub_resource type="RectangleShape2D" id="ShelfShape"]
-size = Vector2(180, 24)
+[ext_resource path="res://game/world/sewer_test/SewerTestRoom.tscn" type="PackedScene" id="4_world"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
-[node name="HumanInputAdapter" type="Node" parent="."]
-script = ExtResource("3_input")
+[node name="SewerTestRoom" parent="." instance=ExtResource("4_world")]
 
 [node name="Hunter" parent="." instance=ExtResource("2_hunter")]
-position = Vector2(250, 580)
+position = Vector2(180, 570)
 
-[node name="MovementLab" type="Node2D" parent="."]
-
-[node name="Ground" type="StaticBody2D" parent="MovementLab"]
-position = Vector2(640, 670)
-collision_layer = 1
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MovementLab/Ground"]
-shape = SubResource("GroundShape")
-
-[node name="LeftBoundary" type="StaticBody2D" parent="MovementLab"]
-position = Vector2(-20, 360)
-collision_layer = 1
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MovementLab/LeftBoundary"]
-shape = SubResource("BoundaryShape")
-
-[node name="RightBoundary" type="StaticBody2D" parent="MovementLab"]
-position = Vector2(1300, 360)
-collision_layer = 1
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MovementLab/RightBoundary"]
-shape = SubResource("BoundaryShape")
-
-[node name="LedgeBlock" type="StaticBody2D" parent="MovementLab"]
-position = Vector2(930, 540)
-collision_layer = 1
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MovementLab/LedgeBlock"]
-shape = SubResource("LedgeBlockShape")
-
-[node name="UpperShelf" type="StaticBody2D" parent="MovementLab"]
-position = Vector2(1170, 380)
-collision_layer = 1
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MovementLab/UpperShelf"]
-shape = SubResource("ShelfShape")
+[node name="HumanInputAdapter" type="Node" parent="."]
+script = ExtResource("3_input")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
-offset_left = 36.0
-offset_top = 30.0
-offset_right = 1050.0
-offset_bottom = 270.0
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 18
+offset_left = 30.0
+offset_top = 24.0
+offset_right = 1100.0
+offset_bottom = 286.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 7
 
 [node name="Title" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.82, 0.91, 1, 1)
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 31
 text = "Φ: NIGHT CIRCUIT"
 
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
-theme_override_font_sizes/font_size = 18
-text = "NC-002 // HUNTER CONTROLLER"
+theme_override_font_sizes/font_size = 17
+text = "NC-003 // SEWER TEST ROOM"
+
+[node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
+theme_override_font_sizes/font_size = 20
+text = "ROOM: INTAKE SHAFT"
 
 [node name="Status" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.66, 0.86, 0.75, 1)
-text = "ACTION BUS: ONLINE   |   AUTHORITY: GOVERNED   |   MOVEMENT LAB: READY"
+text = "CHECKPOINT: drain_entry   |   CAMERA: ROOM-BOUNDED   |   RESPAWN: ARMED"
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "A/D or arrows: run   SPACE/W/UP: jump & wall kick   S/DOWN: crouch & ledge drop   P: Φ ping"
+text = "Traverse right. Reach each beacon. Falling into the drainage returns you to the latest checkpoint."
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)

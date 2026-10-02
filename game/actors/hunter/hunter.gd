@@ -54,6 +54,7 @@ var _state := LocomotionState.AIR
 @onready var left_head_ray: RayCast2D = $Sensors/LeftHeadRay
 @onready var right_head_ray: RayCast2D = $Sensors/RightHeadRay
 @onready var ceiling_ray: RayCast2D = $Sensors/CeilingRay
+@onready var camera: Camera2D = $Camera2D
 
 func _ready() -> void:
 	var bus := get_node_or_null("/root/ActionBus")
@@ -62,6 +63,7 @@ func _ready() -> void:
 		if not bus.is_connected("action_accepted", callback):
 			bus.connect("action_accepted", callback)
 
+	camera.enabled = true
 	_set_crouched(false)
 	_force_sensor_update()
 	_update_locomotion_state()
@@ -210,7 +212,6 @@ func _try_begin_ledge_grab() -> bool:
 	if is_on_floor() or _ledge_hanging or _ledge_regrab_timer > 0.0:
 		return false
 
-	# Do not magnetize to a ledge during the fast upward part of a jump.
 	if velocity.y < -140.0:
 		return false
 
@@ -332,6 +333,27 @@ func _state_name(value: int) -> String:
 			return "LEDGE_HANG"
 		_:
 			return "UNKNOWN"
+
+func set_camera_bounds(bounds: Rect2) -> void:
+	camera.limit_left = int(bounds.position.x)
+	camera.limit_top = int(bounds.position.y)
+	camera.limit_right = int(bounds.position.x + bounds.size.x)
+	camera.limit_bottom = int(bounds.position.y + bounds.size.y)
+
+func force_respawn(world_position: Vector2) -> void:
+	global_position = world_position
+	velocity = Vector2.ZERO
+	_move_intent = 0.0
+	_crouch_intent = false
+	_jump_buffer_timer = 0.0
+	_jump_release_pending = false
+	_coyote_timer = 0.0
+	_ledge_hanging = false
+	_ledge_side = 0
+	_ledge_regrab_timer = LEDGE_REGRAB_LOCK
+	_set_crouched(false)
+	reset_physics_interpolation()
+	movement_event.emit("respawn", {"position": [world_position.x, world_position.y]})
 
 func actor_snapshot() -> Dictionary:
 	return {

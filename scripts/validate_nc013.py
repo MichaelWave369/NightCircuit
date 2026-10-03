@@ -90,7 +90,6 @@ require_tokens(
     "game/main/Main.tscn",
     [
         "ScoutState",
-        "NC-013 // SCOUT CORE",
     ],
 )
 

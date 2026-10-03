@@ -31,6 +31,7 @@ var _boss_warning_timer := 0.0
 @onready var ledger_state_label: Label = $HUD/MarginContainer/VBoxContainer/LedgerState
 @onready var boss_state_label: Label = $HUD/MarginContainer/VBoxContainer/BossState
 @onready var scout_state_label: Label = $HUD/MarginContainer/VBoxContainer/ScoutState
+@onready var backtrack_state_label: Label = $HUD/MarginContainer/VBoxContainer/BacktrackState
 
 func _ready() -> void:
 	var receipt_ledger := get_node_or_null("/root/ReceiptLedger")
@@ -85,7 +86,7 @@ func _ready() -> void:
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-013"}
+			"payload": {"milestone": "NC-014"}
 		})
 
 	_update_readout()
@@ -97,6 +98,7 @@ func _ready() -> void:
 	_update_world_state_readout()
 	_update_ledger_readout()
 	_update_boss_readout()
+	_update_backtrack_readout()
 
 func _connect_world(target: Node) -> void:
 	if target == null:
@@ -122,12 +124,17 @@ func _connect_world(target: Node) -> void:
 		target.boss_defeated.connect(_on_boss_defeated)
 	if target.has_signal("scout_core_claimed"):
 		target.scout_core_claimed.connect(_on_scout_core_claimed)
+	if target.has_signal("backtrack_route_opened"):
+		target.backtrack_route_opened.connect(_on_backtrack_route_opened)
+	if target.has_signal("backtrack_discovery"):
+		target.backtrack_discovery.connect(_on_backtrack_discovery)
 
 func _process(delta: float) -> void:
 	_boss_warning_timer = maxf(0.0, _boss_warning_timer - delta)
 	_update_readout()
 	_update_world_state_readout()
 	_update_boss_readout()
+	_update_backtrack_readout()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
@@ -324,6 +331,13 @@ func _update_world_state_readout() -> void:
 	if world.has_method("world_state_snapshot"):
 		var snapshot: Dictionary = world.world_state_snapshot()
 		phase = str(snapshot.get("phase", "?"))
+		if snapshot.has("backtrack_route_open"):
+			world_state_label.text = "WORLD: %s // SCOUT ROUTE %s // SERVICE VEIN %s" % [
+				phase,
+				"OPEN" if snapshot.get("backtrack_route_open", false) else "LOCKED",
+				"DISCOVERED" if snapshot.get("backtrack_discovered", false) else "UNMAPPED"
+			]
+			return
 		if not snapshot.has("reality_consistency"):
 			world_state_label.text = "WORLD: %s // REWARD %s // BOSS ARENA %s" % [
 				phase,
@@ -553,10 +567,17 @@ func _on_phi_scout_result(result: Dictionary) -> void:
 				float(result.get("energy", 0.0))
 			]
 		"ANCHOR_MARK":
-			scout_state_label.text = "SCOUT // MARK // %s // %s" % [
-				result.get("target", "none"),
-				result.get("category", "unknown")
-			]
+			var world_effect: Dictionary = result.get("world_effect", {})
+			if str(world_effect.get("status", "")) == "applied":
+				scout_state_label.text = "SCOUT // MARK // %s // WORLD EVENT %s" % [
+					result.get("target", "none"),
+					world_effect.get("event", "applied")
+				]
+			else:
+				scout_state_label.text = "SCOUT // MARK // %s // %s" % [
+					result.get("target", "none"),
+					result.get("category", "unknown")
+				]
 		"ENEMY_READ":
 			scout_state_label.text = "SCOUT // ENEMY READ // %s // %s // CONF %.2f" % [
 				result.get("target", "none"),
@@ -567,6 +588,65 @@ func _on_phi_scout_result(result: Dictionary) -> void:
 			scout_state_label.text = "SCOUT // CONTRADICTION SENSE // %s conflicts" % result.get("contradiction_count", 0)
 		_:
 			scout_state_label.text = "SCOUT // %s // %s" % [ability, status]
+
+func _on_backtrack_route_opened(record: Dictionary) -> void:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger != null:
+		ledger.mark_verified({
+			"subject": str(record.get("target", "intake_anchor_01")),
+			"value": "route_open",
+			"confidence": 0.96,
+			"provenance": {
+				"source_kind": "scout_anchor_mark",
+				"source_id": "phi_bot",
+				"actor": "phi_bot",
+				"room": _active_room(),
+				"phase": _active_phase()
+			},
+			"data": record.duplicate(true),
+			"dedupe_key": "verified|intake_anchor_01|route_open"
+		})
+
+	backtrack_state_label.text = "BACKTRACK // ANCHOR LOCKED // SERVICE VEIN ROUTE RECONSTRUCTED"
+	_update_world_state_readout()
+
+func _on_backtrack_discovery(record: Dictionary) -> void:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger != null:
+		ledger.record_evidence({
+			"subject": str(record.get("subject", "service_vein_01")),
+			"value": record.get("value", "discovered"),
+			"confidence": float(record.get("confidence", 1.0)),
+			"provenance": {
+				"source_kind": "direct_traversal",
+				"source_id": "hunter",
+				"actor": "hunter",
+				"room": _active_room(),
+				"phase": _active_phase()
+			},
+			"data": record.duplicate(true),
+			"dedupe_key": "evidence|service_vein_01|discovered"
+		})
+
+	backtrack_state_label.text = "BACKTRACK // SERVICE VEIN DISCOVERED // KEYHOLE RESIDUE DETECTABLE"
+	_update_world_state_readout()
+
+func _update_backtrack_readout() -> void:
+	if sewer_world == null or not sewer_world.has_method("world_state_snapshot"):
+		backtrack_state_label.text = "BACKTRACK: unavailable"
+		return
+
+	var snapshot: Dictionary = sewer_world.world_state_snapshot()
+	if not bool(snapshot.get("scout_unlocked", false)):
+		backtrack_state_label.text = "BACKTRACK: SCOUT REQUIRED"
+		return
+	if bool(snapshot.get("backtrack_discovered", false)):
+		backtrack_state_label.text = "BACKTRACK: SERVICE VEIN DISCOVERED // old terrain has new meaning"
+		return
+	if bool(snapshot.get("backtrack_route_open", false)):
+		backtrack_state_label.text = "BACKTRACK: ROUTE OPEN // climb Intake Shaft upper service platforms"
+		return
+	backtrack_state_label.text = "BACKTRACK: return to INTAKE SHAFT // PING → MARK dormant anchor"
 
 func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
 	_update_agent_seat_readout()

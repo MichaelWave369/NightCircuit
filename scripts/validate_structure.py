@@ -55,6 +55,7 @@ REQUIRED = [
     "docs/REALITY_LEDGER.md",
     "docs/THE_FALLEN.md",
     "docs/SCOUT_CORE.md",
+    "docs/BACKTRACKING_LOOP.md",
 ]
 
 missing = [path for path in REQUIRED if not (ROOT / path).is_file()]

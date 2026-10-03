@@ -2,65 +2,79 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Current milestone: NC-013 — Scout Core
+## Current milestone: NC-014 — Backtracking Loop
 
-Defeating The Fallen now leads to Φ-Bot's first actual transformation.
+The first Metroidvania loop now closes.
 
-Approach the Scout Core and press **R**.
+After earning the Scout Core from The Fallen, return all the way to **Intake Shaft**.
 
-```text
-BROKEN
-   |
-SCOUT CORE
-compatibility ~0.97
-   |
-   v
-SCOUT
-```
-
-Scout unlocks:
+Near the old upper wall:
 
 ```text
-P  RESONANCE PING
-G  ANCHOR MARK
-T  ENEMY READ
-
-+ passive CONTRADICTION SENSE
+P  Resonance Ping
+   ↓
+intake_anchor_01 detected
+   ↓
+G  Anchor Mark
+   ↓
+dormant geometry reconstructs
+   ↓
+climb the new upper platforms
+   ↓
+SERVICE VEIN // UNMAPPED
 ```
 
-External agents use the same actions through P3:
+The room was always there.
 
-- `PING`
-- `MARK`
-- `SCAN {"mode":"enemy_read"}`
-- `SCAN {"mode":"contradiction"}`
+Your ability to perceive and stabilize its route was not.
 
-### No cheat pipe
+### Persistent route
 
-Scout abilities remain governed actions.
-
-They cost Φ-Bot energy, produce effect receipts, and expose only bounded sensing results.
-
-A Ping is still not evidence. INSPECT remains the evidence-producing action.
-
-### Persistent progression
-
-Scout installation is written to the Reality Ledger as:
+Opening the route writes:
 
 ```text
 verified
-phi_bot_form = SCOUT
+intake_anchor_01 = route_open
 ```
 
-Φ-Bot restores the form from that record on later starts.
+Reaching the hidden passage writes:
 
-### P3
+```text
+evidence
+service_vein_01 = discovered
+```
 
-The capability map changes dynamically when Scout installs, so the existing local external agent seat learns the new actions without a model-specific bridge.
+Both survive restart through the Reality Ledger.
+
+### Agent-native backtracking
+
+External Φ-Bot agents use the same P3 actions:
+
+```text
+OBSERVE
+PING
+MARK intake_anchor_01
+OBSERVE
+```
+
+There is no agent-only shortcut.
+
+### The next weird thing
+
+Inside the Service Vein, Scout can detect:
+
+```text
+keyhole_residue_01
+category: causal_residue
+classification: cause_unknown
+confidence: 0.71
+```
+
+No explanation yet. The game is allowed to keep one secret for more than six minutes.
 
 ## Next rung
 
-**NC-014 — Backtracking loop:** return to old sewer terrain, Ping what used to look inert, Mark the anchor, and open the first progression route.
+**NC-015 — Vertical Slice 0.1 qualification:** test and harden the whole Drain → Village → Night → Fallen → Scout → Backtrack loop as one playable build.
 
 ## License
 

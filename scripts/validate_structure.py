@@ -20,6 +20,7 @@ REQUIRED = [
     "game/world/sewer_test/SewerTestRoom.tscn",
     "game/world/inspection/inspectable.gd",
     "game/world/inspection/Inspectable.tscn",
+    "protocol/actions/action_contract.gd",
     "protocol/action_bus/action_bus.gd",
     "protocol/authority/authority_gate.gd",
     "protocol/observations/observation.gd",
@@ -31,6 +32,7 @@ REQUIRED = [
     "docs/WORLD_FLOW.md",
     "docs/COMBAT.md",
     "docs/PHI_BOT.md",
+    "docs/ACTION_BUS.md",
     "docs/VERTICAL_SLICE.md",
     "docs/ROADMAP.md",
 ]

@@ -31,25 +31,56 @@ var _last_inspection: Dictionary = {}
 func _ready() -> void:
 	var bus := get_node_or_null("/root/ActionBus")
 	if bus != null:
-		var callback := Callable(self, "_on_action_accepted")
-		if not bus.is_connected("action_accepted", callback):
-			bus.connect("action_accepted", callback)
+		bus.register_actor(ACTOR_ID, Callable(self, "execute_action"))
 
 	_hunter = get_tree().get_first_node_in_group("hunter")
 	queue_redraw()
 	_emit_state()
 
-func _physics_process(delta: float) -> void:
-	_bob_time += delta
-	_tick_energy(delta)
+func _exit_tree() -> void:
+	var bus := get_node_or_null("/root/ActionBus")
+	if bus != null:
+		bus.unregister_actor(ACTOR_ID, Callable(self, "execute_action"))
 
-	if _mode == "FOLLOW":
-		_tick_follow(delta)
-	else:
-		velocity = velocity.move_toward(Vector2.ZERO, FOLLOW_ACCELERATION * delta)
+func execute_action(action: Dictionary) -> Dictionary:
+	if str(action.get("actor", "")).to_lower() != ACTOR_ID:
+		return _effect("refused", "actor_mismatch")
 
-	move_and_slide()
-	queue_redraw()
+	control_source = str(action.get("source", control_source)).to_lower()
+	var action_name := str(action.get("action", "")).to_upper()
+	var payload = action.get("payload", {})
+	if not (payload is Dictionary):
+		return _effect("failed", "payload_not_dictionary")
+
+	match action_name:
+		"FOLLOW":
+			_mode = "FOLLOW"
+			_emit_state()
+			return _effect("applied", "follow_enabled", {"mode": _mode})
+		"HOLD":
+			_mode = "HOLD"
+			velocity = Vector2.ZERO
+			_emit_state()
+			return _effect("applied", "hold_enabled", {"mode": _mode})
+		"LIGHT":
+			return _execute_light(payload)
+		"INSPECT":
+			return _execute_inspect(payload)
+		"MOVE":
+			return _execute_move(payload)
+		"PING", "SCAN", "MARK":
+			return _effect("refused", "ability_unavailable_in_broken_form", {"form": form_id})
+		"INTERACT":
+			return _effect("refused", "interact_not_implemented")
+		_:
+			return _effect("refused", "action_not_implemented")
+
+func _effect(status: String, reason: String, detail: Dictionary = {}) -> Dictionary:
+	return {
+		"status": status,
+		"reason": reason,
+		"effect": detail
+	}
 
 func bind_hunter(target: Node2D) -> void:
 	_hunter = target
@@ -65,30 +96,17 @@ func reset_near_hunter() -> void:
 	reset_physics_interpolation()
 	_emit_state()
 
-func _on_action_accepted(action: Dictionary, _receipt: Dictionary) -> void:
-	if str(action.get("actor", "")).to_lower() != ACTOR_ID:
-		return
+func _physics_process(delta: float) -> void:
+	_bob_time += delta
+	_tick_energy(delta)
 
-	control_source = str(action.get("source", control_source)).to_lower()
-	var action_name := str(action.get("action", "")).to_upper()
-	var payload = action.get("payload", {})
-	if not (payload is Dictionary):
-		return
+	if _mode == "FOLLOW":
+		_tick_follow(delta)
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, FOLLOW_ACCELERATION * delta)
 
-	match action_name:
-		"FOLLOW":
-			_mode = "FOLLOW"
-			_emit_state()
-		"HOLD":
-			_mode = "HOLD"
-			velocity = Vector2.ZERO
-			_emit_state()
-		"LIGHT":
-			_apply_light_command(payload)
-		"INSPECT":
-			_inspect(payload)
-		"MOVE":
-			_apply_move_command(payload)
+	move_and_slide()
+	queue_redraw()
 
 func _tick_follow(delta: float) -> void:
 	if _hunter == null or not is_instance_valid(_hunter):
@@ -130,7 +148,7 @@ func _tick_energy(delta: float) -> void:
 	if not is_equal_approx(previous_energy, energy) or previous_light != _light_enabled:
 		_emit_state()
 
-func _apply_light_command(payload: Dictionary) -> void:
+func _execute_light(payload: Dictionary) -> Dictionary:
 	var requested := not _light_enabled
 
 	if payload.has("enabled"):
@@ -140,12 +158,36 @@ func _apply_light_command(payload: Dictionary) -> void:
 
 	if requested and energy <= 0.0:
 		_light_enabled = false
-	else:
-		_light_enabled = requested
+		_emit_state()
+		return _effect("refused", "insufficient_energy", {"energy": energy})
 
+	_light_enabled = requested
 	_emit_state()
+	return _effect(
+		"applied",
+		"light_state_updated",
+		{
+			"enabled": _light_enabled,
+			"energy": energy
+		}
+	)
 
-func _inspect(payload: Dictionary) -> void:
+func _execute_inspect(payload: Dictionary) -> Dictionary:
+	var result := _inspect(payload)
+	var status := str(result.get("status", "unknown"))
+
+	if status == "observed":
+		return _effect("applied", "inspection_completed", {"inspection": result})
+
+	if status == "no_target":
+		return _effect("noop", "no_inspectable_in_range", {"inspection": result})
+
+	if status == "insufficient_energy":
+		return _effect("refused", "insufficient_energy", {"inspection": result})
+
+	return _effect("failed", "inspection_failed", {"inspection": result})
+
+func _inspect(payload: Dictionary) -> Dictionary:
 	if energy < INSPECT_COST:
 		_last_inspection = {
 			"status": "insufficient_energy",
@@ -154,7 +196,7 @@ func _inspect(payload: Dictionary) -> void:
 		}
 		inspect_result.emit(_last_inspection.duplicate(true))
 		_emit_state()
-		return
+		return _last_inspection.duplicate(true)
 
 	var requested_id := str(payload.get("target", ""))
 	var best: Node2D = null
@@ -193,11 +235,9 @@ func _inspect(payload: Dictionary) -> void:
 
 	inspect_result.emit(_last_inspection.duplicate(true))
 	_emit_state()
+	return _last_inspection.duplicate(true)
 
-func _apply_move_command(payload: Dictionary) -> void:
-	if not payload.has("x") or not payload.has("y"):
-		return
-
+func _execute_move(payload: Dictionary) -> Dictionary:
 	_mode = "HOLD"
 	var target := Vector2(float(payload["x"]), float(payload["y"]))
 	var offset := target - global_position
@@ -207,6 +247,16 @@ func _apply_move_command(payload: Dictionary) -> void:
 
 	velocity = offset * 3.0
 	_emit_state()
+
+	return _effect(
+		"applied",
+		"move_vector_applied",
+		{
+			"mode": _mode,
+			"target": [target.x, target.y],
+			"velocity": [velocity.x, velocity.y]
+		}
+	)
 
 func actor_snapshot() -> Dictionary:
 	return {

@@ -51,8 +51,8 @@ script = ExtResource("3_input")
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
 offset_left = 30.0
 offset_top = 24.0
-offset_right = 1180.0
-offset_bottom = 356.0
+offset_right = 1210.0
+offset_bottom = 390.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
@@ -69,7 +69,7 @@ text = "Φ: NIGHT CIRCUIT"
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
 theme_override_font_sizes/font_size = 17
-text = "NC-005 // Φ-BOT ENTITY"
+text = "NC-006 // ACTION BUS HARDENING"
 
 [node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
@@ -78,11 +78,11 @@ text = "ROOM: INTAKE SHAFT"
 
 [node name="Status" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.66, 0.86, 0.75, 1)
-text = "CHECKPOINT: drain_entry   |   Φ-BOT: FOLLOW   |   BROKEN FORM"
+text = "CHECKPOINT: drain_entry   |   EFFECT RECEIPTS: ARMED"
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "F follow   H hold   Q light   E inspect   |   J/Z light attack   K/X heavy   C/L dodge"
+text = "Every governed action now records DECISION + EFFECT. PING is authorized but refused by Broken Form."
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
@@ -103,3 +103,7 @@ text = "INSPECT: no observation"
 [node name="ReceiptLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.94, 0.82, 0.56, 1)
 text = "RECEIPT: waiting"
+
+[node name="ReplayState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.62, 0.72, 0.88, 1)
+text = "REPLAY TAPE: 0 accepted actions"

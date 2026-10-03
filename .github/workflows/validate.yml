@@ -27,3 +27,5 @@ jobs:
         run: python scripts/validate_nc004.py
       - name: Validate NC-005 Φ-Bot contract
         run: python scripts/validate_nc005.py
+      - name: Validate NC-006 action lifecycle
+        run: python scripts/validate_nc006.py

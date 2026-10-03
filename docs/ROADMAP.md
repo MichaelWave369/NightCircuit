@@ -6,8 +6,9 @@
 - **NC-002 — COMPLETE:** Hunter movement controller and governed human input
 - **NC-003 — COMPLETE:** sewer traversal greybox, camera, checkpoints, room flow
 - **NC-004 — COMPLETE:** combat, health/damage, dodge, Drain Husk
-- **NC-005 — COMPLETE IN THIS CHANGE:** embodied Φ-Bot with follow, hold, light, inspect
-- **NC-006 — NEXT:** Action Bus hardening and effect receipts
+- **NC-005 — COMPLETE:** embodied Φ-Bot with follow, hold, light, inspect
+- **NC-006 — COMPLETE IN THIS CHANGE:** typed actions, actor dispatch, effect receipts, replay semantics
+- **NC-007 — NEXT:** Φ Player Protocol observation/action schemas and adapter boundary
 
 ## Vertical-slice ladder
 

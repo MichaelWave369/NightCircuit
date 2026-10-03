@@ -3,109 +3,107 @@
 ## Core flow
 
 ```text
-+---------+  +---------+  +-------+  +---------+  +--------+  +--------+
-| Human   |  | Gamepad |  | Agent |  | Network |  | Replay |  | Script |
-+----+----+  +----+----+  +---+---+  +----+----+  +---+----+  +---+----+
-     \            |           |           |           |           /
-      \___________|___________|___________|___________|__________/
-                              |
-                              v
-                        +-----------+
-                        | ActionBus |
-                        +-----+-----+
-                              |
-                              v
-                      +---------------+
-                      | AuthorityGate |
-                      +-------+-------+
-                              |
-                    accepted  |  rejected
-                              |
-                              v
-                         World Actor
-                              |
-                              v
-                          Receipt(s)
+Human / Gamepad / Agent / Network / Replay / Script
+                       |
+                       v
+                 Action Contract
+                       |
+                       v
+                   ActionBus
+                       |
+                 decision receipt
+                       |
+                       v
+                AuthorityGate
+                       |
+                  accepted?
+                 /         \
+               no           yes
+               |             |
+               v             v
+        rejected receipt  actor executor
+                             |
+                             v
+                        effect receipt
 ```
 
-## Boundaries
-
-### Input adapters
+## Input adapters
 
 Adapters translate device, network, replay, script, or model-specific output into the shared action envelope.
 
-### Action Bus
+They do not hold privileged references to actors.
 
-The Action Bus normalizes and sequences proposals. It does not decide policy.
+## Action Contract
 
-### Authority Gate
+NC-006 introduces a typed structural boundary before authority.
 
-The gate checks whether the source, actor, and action are allowed. Later rungs add room state, cooldown, energy, ownership, handoff, and session grants.
+It owns:
 
-### Actor
+- action schema
+- generated action IDs
+- payload validation
+- effect status validation
+- receipt/replay schema identifiers
 
-Actors own game-specific execution. The Hunter and Φ-Bot are the first actor classes.
+## Action Bus
 
-### Receipts
+The Action Bus now owns the complete command lifecycle:
 
-Receipts make decisions inspectable and replayable. NC-001 stores them in memory only.
+1. normalize
+2. validate
+3. deduplicate optional request IDs
+4. ask Authority Gate
+5. record decision
+6. dispatch to a registered actor executor
+7. validate actor result
+8. record effect
 
-### Reality Ledger
+The bus remains source-agnostic.
 
-The Reality Ledger is distinct from action receipts. It stores claims, observations, provenance, confidence, and contradictions that matter to exploration.
+## Authority Gate
 
-## NC-002: movement intent
+Authority still answers whether a source is allowed to propose a verb for an actor.
 
-The Hunter controller preserves the architecture instead of bypassing it for convenience.
+Capability and runtime state remain actor concerns.
 
-```text
-Keyboard
-   |
-HumanInputAdapter
-   |
-   +-- MOVE
-   +-- JUMP
-   +-- CROUCH
-   |
-ActionBus
-   |
-AuthorityGate
-   |
-Hunter locomotion physics
-```
-
-The HumanInputAdapter has no Hunter reference and never writes velocity. It submits only intent changes.
-
-The Hunter subscribes to **accepted** actions and translates those into local physics state.
-
-This gives future adapters a stable seam:
+That allows a useful distinction:
 
 ```text
-Local keyboard -----\
-Gamepad -------------\
-AI agent --------------> same governed Hunter intent
-Network peer ---------/
-Replay ---------------/
+PING is an authorized Φ-Bot verb
+but
+BROKEN form cannot execute PING yet
 ```
 
-Derived physical events such as wall slide, ledge grab, or wall kick remain actor outcomes in NC-002. A JUMP proposal does not get to declare that a wall kick occurred; the world geometry decides that.
+Decision: accepted.
 
-## Receipt semantics
+Effect: refused.
 
-NC-002 continues the NC-001 rule:
+## Actor execution
 
-> An action receipt proves that the proposal was evaluated and authorized. It does not yet prove the intended world effect occurred.
+Hunter and Φ-Bot register `execute_action(action)` with the Action Bus.
 
-Effect receipts arrive in NC-006 alongside replay hardening.
+Actors return:
 
-## Non-goals for NC-002
+```text
+status + reason + effect
+```
 
-- no LLM SDK dependency
-- no network listener
-- no autonomous game loop
-- no combat implementation
-- no save persistence
-- no effect receipt stream
-- no final animation or art
+instead of silently consuming a global accepted-action signal.
 
-The movement seam comes before the animation attached to it.
+The accepted/rejected signals remain available for observers, telemetry, and future tools, but they are no longer the execution transport.
+
+## Receipts
+
+The Receipt Ledger stores separate decision and effect receipts.
+
+Decision receipts answer what governance decided.
+
+Effect receipts answer what immediate actor execution reported.
+
+Reality evidence remains a separate domain.
+
+## Replay
+
+Accepted decision receipts can be projected into a replay tape and resubmitted through the same governed path.
+
+NC-006 does not yet promise frame-exact deterministic replay. It establishes the input provenance needed to test that claim later.

@@ -2,6 +2,7 @@ extends Node
 class_name NightCircuitHumanInputAdapter
 
 @export var actor_id := "hunter"
+@export var phi_actor_id := "phi_bot"
 @export var source_id := "human"
 
 const INPUT_LEFT := "nc_move_left"
@@ -11,6 +12,11 @@ const INPUT_CROUCH := "nc_crouch"
 const INPUT_LIGHT_ATTACK := "nc_light_attack"
 const INPUT_HEAVY_ATTACK := "nc_heavy_attack"
 const INPUT_DODGE := "nc_dodge"
+
+const INPUT_PHI_FOLLOW := "nc_phi_follow"
+const INPUT_PHI_HOLD := "nc_phi_hold"
+const INPUT_PHI_LIGHT := "nc_phi_light"
+const INPUT_PHI_INSPECT := "nc_phi_inspect"
 
 var _last_move := 999.0
 var _last_jump := false
@@ -24,13 +30,25 @@ func _physics_process(_delta: float) -> void:
 	_publish_current_state(false)
 
 	if Input.is_action_just_pressed(INPUT_LIGHT_ATTACK):
-		_submit("LIGHT_ATTACK", {})
+		_submit(actor_id, "LIGHT_ATTACK", {})
 
 	if Input.is_action_just_pressed(INPUT_HEAVY_ATTACK):
-		_submit("HEAVY_ATTACK", {})
+		_submit(actor_id, "HEAVY_ATTACK", {})
 
 	if Input.is_action_just_pressed(INPUT_DODGE):
-		_submit("DODGE", {})
+		_submit(actor_id, "DODGE", {})
+
+	if Input.is_action_just_pressed(INPUT_PHI_FOLLOW):
+		_submit(phi_actor_id, "FOLLOW", {})
+
+	if Input.is_action_just_pressed(INPUT_PHI_HOLD):
+		_submit(phi_actor_id, "HOLD", {})
+
+	if Input.is_action_just_pressed(INPUT_PHI_LIGHT):
+		_submit(phi_actor_id, "LIGHT", {"toggle": true})
+
+	if Input.is_action_just_pressed(INPUT_PHI_INSPECT):
+		_submit(phi_actor_id, "INSPECT", {})
 
 func _publish_current_state(force: bool) -> void:
 	var move_axis := Input.get_axis(INPUT_LEFT, INPUT_RIGHT)
@@ -41,25 +59,25 @@ func _publish_current_state(force: bool) -> void:
 	var crouch_pressed := Input.is_action_pressed(INPUT_CROUCH)
 
 	if force or not is_equal_approx(move_axis, _last_move):
-		_submit("MOVE", {"x": move_axis})
+		_submit(actor_id, "MOVE", {"x": move_axis})
 		_last_move = move_axis
 
 	if force or jump_pressed != _last_jump:
-		_submit("JUMP", {"pressed": jump_pressed})
+		_submit(actor_id, "JUMP", {"pressed": jump_pressed})
 		_last_jump = jump_pressed
 
 	if force or crouch_pressed != _last_crouch:
-		_submit("CROUCH", {"pressed": crouch_pressed})
+		_submit(actor_id, "CROUCH", {"pressed": crouch_pressed})
 		_last_crouch = crouch_pressed
 
-func _submit(action_name: String, payload: Dictionary) -> void:
+func _submit(target_actor_id: String, action_name: String, payload: Dictionary) -> void:
 	var bus := get_node_or_null("/root/ActionBus")
 	if bus == null:
 		return
 
 	bus.submit({
 		"source": source_id,
-		"actor": actor_id,
+		"actor": target_actor_id,
 		"action": action_name,
 		"payload": payload
 	})
@@ -72,6 +90,11 @@ func _ensure_keyboard_actions() -> void:
 	_ensure_key_action(INPUT_LIGHT_ATTACK, [KEY_J, KEY_Z])
 	_ensure_key_action(INPUT_HEAVY_ATTACK, [KEY_K, KEY_X])
 	_ensure_key_action(INPUT_DODGE, [KEY_C, KEY_L])
+
+	_ensure_key_action(INPUT_PHI_FOLLOW, [KEY_F])
+	_ensure_key_action(INPUT_PHI_HOLD, [KEY_H])
+	_ensure_key_action(INPUT_PHI_LIGHT, [KEY_Q])
+	_ensure_key_action(INPUT_PHI_INSPECT, [KEY_E])
 
 func _ensure_key_action(action_name: String, keycodes: Array) -> void:
 	if not InputMap.has_action(action_name):

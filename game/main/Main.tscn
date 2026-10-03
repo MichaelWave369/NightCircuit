@@ -1,10 +1,12 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource path="res://game/main/main.gd" type="Script" id="1_main"]
 [ext_resource path="res://game/actors/hunter/Hunter.tscn" type="PackedScene" id="2_hunter"]
 [ext_resource path="res://game/input/human_input_adapter.gd" type="Script" id="3_input"]
 [ext_resource path="res://game/world/sewer_test/SewerTestRoom.tscn" type="PackedScene" id="4_world"]
 [ext_resource path="res://game/actors/enemies/drain_husk/DrainHusk.tscn" type="PackedScene" id="5_husk"]
+[ext_resource path="res://game/actors/phi_bot/PhiBot.tscn" type="PackedScene" id="6_phi"]
+[ext_resource path="res://game/world/inspection/Inspectable.tscn" type="PackedScene" id="7_inspectable"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -13,6 +15,25 @@ script = ExtResource("1_main")
 
 [node name="Hunter" parent="." instance=ExtResource("2_hunter")]
 position = Vector2(180, 570)
+
+[node name="PhiBot" parent="." instance=ExtResource("6_phi")]
+position = Vector2(100, 510)
+
+[node name="ImpossibleDoorTrace" parent="." instance=ExtResource("7_inspectable")]
+position = Vector2(610, 458)
+object_id = "impossible_door_trace"
+title = "Sealed maintenance aperture"
+finding = "Frame geometry is present where the visible wall appears continuous. The boundary does not match the rendered surface."
+category = "structural_anomaly"
+confidence = 0.93
+
+[node name="VigilCacheTrace" parent="." instance=ExtResource("7_inspectable")]
+position = Vector2(2040, 430)
+object_id = "vigil_cache_trace"
+title = "Night War emergency cache"
+finding = "A hollow service pocket sits behind the masonry. Contents are not accessible in Broken Form."
+category = "hidden_structure"
+confidence = 0.86
 
 [node name="DrainHuskA" parent="." instance=ExtResource("5_husk")]
 position = Vector2(1110, 575)
@@ -30,8 +51,8 @@ script = ExtResource("3_input")
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
 offset_left = 30.0
 offset_top = 24.0
-offset_right = 1140.0
-offset_bottom = 320.0
+offset_right = 1180.0
+offset_bottom = 356.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
@@ -48,7 +69,7 @@ text = "Φ: NIGHT CIRCUIT"
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
 theme_override_font_sizes/font_size = 17
-text = "NC-004 // COMBAT FOUNDATION"
+text = "NC-005 // Φ-BOT ENTITY"
 
 [node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
@@ -57,11 +78,11 @@ text = "ROOM: INTAKE SHAFT"
 
 [node name="Status" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.66, 0.86, 0.75, 1)
-text = "CHECKPOINT: drain_entry   |   CAMERA: ROOM-BOUNDED   |   COMBAT: ARMED"
+text = "CHECKPOINT: drain_entry   |   Φ-BOT: FOLLOW   |   BROKEN FORM"
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "J/Z light   K/X heavy   C/L dodge   |   Drain Husk attacks telegraph before becoming active."
+text = "F follow   H hold   Q light   E inspect   |   J/Z light attack   K/X heavy   C/L dodge"
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
@@ -70,6 +91,14 @@ text = "HUNTER: booting"
 [node name="CombatState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.91, 0.69, 0.52, 1)
 text = "HP: 100/100   COMBAT: READY"
+
+[node name="PhiState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.51, 0.87, 0.92, 1)
+text = "Φ-BOT: booting"
+
+[node name="InspectionState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.72, 0.76, 0.84, 1)
+text = "INSPECT: no observation"
 
 [node name="ReceiptLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.94, 0.82, 0.56, 1)

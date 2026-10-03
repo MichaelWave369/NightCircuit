@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://game/world/inspection/inspectable.gd" type="Script" id="1_inspectable"]
+
+[node name="Inspectable" type="Node2D" groups=["inspectable"]]
+script = ExtResource("1_inspectable")

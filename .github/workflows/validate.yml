@@ -41,3 +41,5 @@ jobs:
         run: python scripts/validate_nc010.py
       - name: Validate NC-011 Reality Ledger
         run: python scripts/validate_nc011.py
+      - name: Validate NC-012 The Fallen
+        run: python scripts/validate_nc012.py

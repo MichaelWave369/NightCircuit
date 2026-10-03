@@ -183,5 +183,15 @@ func _entity_record(node: Node2D, kind: String, distance: float) -> Dictionary:
 			record["combat"] = snapshot["combat"]
 		if snapshot.has("mode"):
 			record["mode"] = snapshot["mode"]
+		if snapshot.has("health"):
+			record["health"] = snapshot["health"]
+		if snapshot.has("max_health"):
+			record["max_health"] = snapshot["max_health"]
+		if snapshot.has("boss_phase"):
+			record["boss_phase"] = snapshot["boss_phase"]
+		if snapshot.has("attack"):
+			record["attack"] = snapshot["attack"]
+		if snapshot.has("physical_source"):
+			record["physical_source"] = snapshot["physical_source"]
 
 	return record

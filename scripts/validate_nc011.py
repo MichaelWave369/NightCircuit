@@ -64,7 +64,6 @@ require_tokens(
     "game/main/Main.tscn",
     [
         "LedgerState",
-        "NC-011 // REALITY LEDGER",
     ],
 )
 

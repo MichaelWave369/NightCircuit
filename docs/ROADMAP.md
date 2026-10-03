@@ -12,8 +12,9 @@
 - **NC-008 — COMPLETE:** loopback external Φ-Bot seat and local model bridge
 - **NC-009 — COMPLETE:** Ash Village hub, NPC schedules, governed testimony
 - **NC-010 — COMPLETE:** bell-driven day/night state, routes, hostiles, reality consistency
-- **NC-011 — COMPLETE IN THIS CHANGE:** persistent claims/evidence/observations with provenance and derived contradictions
-- **NC-012 — NEXT:** The Fallen
+- **NC-011 — COMPLETE:** persistent claims/evidence/observations with provenance and derived contradictions
+- **NC-012 — COMPLETE IN THIS CHANGE:** The Fallen boss, causal phase-two attack, boss evidence
+- **NC-013 — NEXT:** Scout Core
 
 ## Vertical-slice ladder
 
@@ -30,7 +31,7 @@
 | NC-009 | Ash Village | first hub loop, NPC schedules, governed testimony |
 | NC-010 | Day/night | bell changes schedules, routes, hostiles, geometry, consistency |
 | NC-011 | Reality Ledger | persistent provenance-aware claims/evidence plus contradictions |
-| NC-012 | The Fallen | complete first boss encounter |
+| NC-012 | The Fallen | two-phase boss with first no-physical-source attack |
 | NC-013 | Scout Core | ping, mark, enemy read, contradiction sense |
 | NC-014 | Backtracking loop | Scout opens meaningful old-route discoveries |
 | NC-015 | Vertical Slice 0.1 | The Drain is playable start to finish |

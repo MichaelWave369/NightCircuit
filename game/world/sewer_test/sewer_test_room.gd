@@ -8,6 +8,8 @@ signal exit_requested(destination: String)
 
 const WORLD_SIZE := Vector2(3840.0, 720.0)
 const KILL_Y := 820.0
+const BOSS_GATE_POSITION := Vector2(3310.0, 570.0)
+const BOSS_GATE_RANGE := 145.0
 
 const ROOMS := [
 	{
@@ -120,6 +122,31 @@ func enter_from_village(target: Node2D) -> void:
 
 func world_phase() -> String:
 	return "DRAIN"
+
+func interact_nearest(actor: Node2D) -> Dictionary:
+	if not _active:
+		return {"status": "no_target"}
+
+	var gate_distance := actor.global_position.distance_to(BOSS_GATE_POSITION)
+	if gate_distance <= BOSS_GATE_RANGE:
+		exit_requested.emit("fallen_arena")
+		return {
+			"status": "world_event",
+			"event": "enter_fallen_cistern",
+			"detail": "The cistern seal opens.",
+			"distance": gate_distance
+		}
+
+	return {"status": "no_target", "range": BOSS_GATE_RANGE}
+
+func enter_from_boss(target: Node2D) -> void:
+	hunter = target
+	_active = true
+	_exit_latched = false
+	activate_checkpoint("cistern_gate", true)
+	_enter_room(ROOMS[2])
+	if hunter != null and hunter.has_method("force_respawn"):
+		hunter.force_respawn(Vector2(3225.0, 570.0))
 
 func _build_world_exit() -> void:
 	var area := _make_area(
@@ -280,7 +307,9 @@ func _draw() -> void:
 		draw_line(p + Vector2(0.0, 28.0), p + Vector2(0.0, -38.0), marker_color, 4.0)
 		draw_circle(p + Vector2(0.0, -45.0), 9.0, marker_color)
 
-	# Future boss boundary.
+	# Boss threshold and village lift.
 	draw_line(Vector2(3810.0, 140.0), Vector2(3810.0, 620.0), Color(0.55, 0.20, 0.22, 0.8), 6.0)
+	draw_circle(BOSS_GATE_POSITION + Vector2(0.0, -24.0), 18.0, Color(0.50, 0.22, 0.26, 0.9))
+	draw_arc(BOSS_GATE_POSITION + Vector2(0.0, -24.0), 29.0, 0.0, TAU, 30, Color(0.72, 0.40, 0.42, 0.85), 3.0)
+	draw_string(ThemeDB.fallback_font, BOSS_GATE_POSITION + Vector2(-112.0, -72.0), "R // ENTER FALLEN CISTERN", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 15, Color(0.78, 0.49, 0.50, 0.95))
 	draw_string(ThemeDB.fallback_font, Vector2(3450.0, 190.0), "LIFT // ASH VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, Color(0.46, 0.72, 0.76, 0.9))
-	draw_string(ThemeDB.fallback_font, Vector2(3585.0, 125.0), "THE FALLEN // LOCKED UNTIL NC-012", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 15, Color(0.68, 0.37, 0.39, 0.9))

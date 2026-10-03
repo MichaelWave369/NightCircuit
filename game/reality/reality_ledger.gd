@@ -137,6 +137,42 @@ func records_for_subject(subject: String) -> Array:
 func contradictions() -> Array:
 	return records_by_type("contradiction")
 
+func has_record(subject: String, value, record_type: String = "") -> bool:
+	for record in _records:
+		if str(record.get("subject", "")) != subject:
+			continue
+		if not record_type.is_empty() and str(record.get("type", "")) != record_type:
+			continue
+		if _values_equal(record.get("value", null), value):
+			return true
+	return false
+
+func contradiction_sense(limit: int = 4) -> Array:
+	var result: Array = []
+	var remaining := maxi(1, limit)
+
+	for index in range(_records.size() - 1, -1, -1):
+		var record = _records[index]
+		if not (record is Dictionary):
+			continue
+		if str(record.get("type", "")) != "contradiction":
+			continue
+
+		var data: Dictionary = record.get("data", {})
+		result.append({
+			"record_id": record.get("record_id", ""),
+			"subject": record.get("subject", ""),
+			"confidence": record.get("confidence", 0.0),
+			"values": data.get("values", []),
+			"sources": data.get("sources", [])
+		})
+
+		remaining -= 1
+		if remaining <= 0:
+			break
+
+	return result
+
 func summary() -> Dictionary:
 	var counts := {}
 	for record_type in ALLOWED_RECORD_TYPES:

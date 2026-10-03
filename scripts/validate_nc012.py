@@ -76,7 +76,6 @@ require_tokens(
         "FallenArena.tscn",
         'name="FallenArena"',
         "BossState",
-        "NC-012 // THE FALLEN",
     ],
 )
 

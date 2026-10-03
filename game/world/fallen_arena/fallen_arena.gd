@@ -8,6 +8,7 @@ signal exit_requested(destination: String)
 signal boss_state_changed(snapshot: Dictionary)
 signal boss_anomaly(event: Dictionary)
 signal boss_defeated(snapshot: Dictionary)
+signal scout_core_claimed(record: Dictionary)
 
 const WORLD_SIZE := Vector2(1280.0, 720.0)
 const KILL_Y := 820.0
@@ -33,6 +34,7 @@ var current_room_id := "fallen_cistern"
 var _active := false
 var _boss_defeated := false
 var _vigil_cache_used := false
+var _scout_core_claimed := false
 var _last_anomaly: Dictionary = {}
 var _anomaly_timer := 0.0
 
@@ -47,6 +49,7 @@ func _ready() -> void:
 	boss.anomaly_detected.connect(_on_boss_anomaly)
 	boss.defeated.connect(_on_boss_defeated)
 
+	_restore_progress_from_ledger()
 	set_active(false)
 	queue_redraw()
 
@@ -92,10 +95,10 @@ func world_state_snapshot() -> Dictionary:
 		"phase": "CISTERN",
 		"boss_defeated": _boss_defeated,
 		"vigil_cache_used": _vigil_cache_used,
-		"reward_state": "SCOUT_CORE_UNCLAIMED" if _boss_defeated else "LOCKED"
+		"reward_state": _reward_state()
 	}
 
-	if boss != null and boss.has_method("actor_snapshot"):
+	if not _boss_defeated and boss != null and boss.has_method("actor_snapshot"):
 		snapshot["boss"] = boss.actor_snapshot()
 
 	return snapshot
@@ -123,7 +126,7 @@ func protocol_signals(observer_position: Vector2, max_range: float) -> Dictionar
 					]
 				}
 
-	if _boss_defeated:
+	if _boss_defeated and not _scout_core_claimed:
 		var core_global := global_position + SCOUT_CORE_POSITION
 		var core_distance := observer_position.distance_to(core_global)
 		if core_distance <= max_range:
@@ -158,6 +161,25 @@ func interact_nearest(actor: Node2D) -> Dictionary:
 			"distance": cache_distance
 		}
 
+	if _boss_defeated and not _scout_core_claimed:
+		var core_global := global_position + SCOUT_CORE_POSITION
+		var core_distance := actor.global_position.distance_to(core_global)
+		if core_distance <= INTERACT_RANGE:
+			_scout_core_claimed = true
+			var core_record := {
+				"status": "world_event",
+				"event": "scout_core_claimed",
+				"core_id": "scout_core_01",
+				"compatibility": 0.97,
+				"recipient": "phi_bot",
+				"form": "SCOUT",
+				"detail": "Φ-Bot accepted the Scout Core.",
+				"distance": core_distance
+			}
+			scout_core_claimed.emit(core_record.duplicate(true))
+			queue_redraw()
+			return core_record
+
 	if _boss_defeated:
 		var return_global := global_position + RETURN_POSITION
 		var return_distance := actor.global_position.distance_to(return_global)
@@ -171,6 +193,25 @@ func interact_nearest(actor: Node2D) -> Dictionary:
 			}
 
 	return {"status": "no_target", "range": INTERACT_RANGE}
+
+func _reward_state() -> String:
+	if not _boss_defeated:
+		return "LOCKED"
+	if _scout_core_claimed:
+		return "SCOUT_CORE_CLAIMED"
+	return "SCOUT_CORE_UNCLAIMED"
+
+func _restore_progress_from_ledger() -> void:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger == null or not ledger.has_method("has_record"):
+		return
+
+	_boss_defeated = ledger.has_record("the_fallen", "defeated", "evidence")
+	_scout_core_claimed = ledger.has_record("phi_bot_form", "SCOUT", "verified")
+
+	if _boss_defeated and boss != null:
+		boss.set_encounter_active(false)
+		boss.visible = false
 
 func respawn_hunter() -> void:
 	if hunter == null:
@@ -217,6 +258,7 @@ func _on_boss_anomaly(event: Dictionary) -> void:
 
 func _on_boss_defeated(snapshot: Dictionary) -> void:
 	_boss_defeated = true
+	_scout_core_claimed = false
 	_last_anomaly = {}
 	_anomaly_timer = 0.0
 	boss_defeated.emit(snapshot.duplicate(true))
@@ -271,7 +313,7 @@ func _draw() -> void:
 		draw_rect(Rect2(VIGIL_CACHE_POSITION + Vector2(-24.0, -32.0), Vector2(48.0, 64.0)), Color(0.11, 0.10, 0.12, 1.0), false, 2.0)
 		draw_line(VIGIL_CACHE_POSITION + Vector2(-18.0, -8.0), VIGIL_CACHE_POSITION + Vector2(14.0, 13.0), Color(0.26, 0.22, 0.23, 0.8), 2.0)
 
-	if _boss_defeated:
+	if _boss_defeated and not _scout_core_claimed:
 		draw_circle(SCOUT_CORE_POSITION, 18.0, Color(0.46, 0.76, 0.86, 0.95))
 		draw_arc(SCOUT_CORE_POSITION, 31.0, 0.0, TAU, 32, Color(0.62, 0.82, 0.93, 0.8), 3.0)
 		draw_string(
@@ -283,6 +325,18 @@ func _draw() -> void:
 			16,
 			Color(0.58, 0.82, 0.92, 0.9)
 		)
+	if _boss_defeated and _scout_core_claimed:
+		draw_string(
+			ThemeDB.fallback_font,
+			SCOUT_CORE_POSITION + Vector2(-90.0, -48.0),
+			"SCOUT LINK COMPLETE",
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1.0,
+			15,
+			Color(0.58, 0.82, 0.92, 0.75)
+		)
+
+	if _boss_defeated:
 		draw_string(
 			ThemeDB.fallback_font,
 			RETURN_POSITION + Vector2(-55.0, -55.0),

@@ -2,73 +2,65 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Current milestone: NC-012 — The Fallen
+## Current milestone: NC-013 — Scout Core
 
-The first full boss encounter is now wired into Cistern Approach.
+Defeating The Fallen now leads to Φ-Bot's first actual transformation.
 
-At the red cistern seal, press **R** to enter.
-
-### Phase 1
-
-The Fallen uses readable physical attacks:
+Approach the Scout Core and press **R**.
 
 ```text
-WHIP_STRIKE
-GROUND_SWEEP
-CROSS_THROW
-BELL_LEAP
+BROKEN
+   |
+SCOUT CORE
+compatibility ~0.97
+   |
+   v
+SCOUT
 ```
 
-Their visible source and damage source agree.
-
-### Phase 2
-
-At 50% health, the fight changes.
+Scout unlocks:
 
 ```text
-CAUSAL_ECHO
+P  RESONANCE PING
+G  ANCHOR MARK
+T  ENEMY READ
+
++ passive CONTRADICTION SENSE
 ```
 
-The boss visibly attacks from one place while damage manifests at a historical Hunter position.
+External agents use the same actions through P3:
 
-Φ-Bot can detect:
+- `PING`
+- `MARK`
+- `SCAN {"mode":"enemy_read"}`
+- `SCAN {"mode":"contradiction"}`
+
+### No cheat pipe
+
+Scout abilities remain governed actions.
+
+They cost Φ-Bot energy, produce effect receipts, and expose only bounded sensing results.
+
+A Ping is still not evidence. INSPECT remains the evidence-producing action.
+
+### Persistent progression
+
+Scout installation is written to the Reality Ledger as:
 
 ```text
-ATTACK DETECTED:
-NO PHYSICAL SOURCE
+verified
+phi_bot_form = SCOUT
 ```
 
-That warning is actor-scoped through P3 rather than painted onto the floor for the human.
+Φ-Bot restores the form from that record on later starts.
 
-### Reality Ledger
+### P3
 
-The first causal anomaly is recorded as an observation with Φ-Bot provenance.
-
-Victory is recorded as direct combat evidence.
-
-### Vigil Cache
-
-There is a one-use hidden full-heal cache in suspicious masonry near the arena entrance.
-
-### After victory
-
-The **Scout Core** appears, but remains unclaimed.
-
-That is deliberate.
-
-NC-013 owns the actual Φ-Bot transformation and new ability surface.
-
-## External Φ-Bot seat
-
-The local P3 seat remains at:
-
-`127.0.0.1:36970`
-
-An external agent can therefore experience boss health, phase, attack state, and Φ-Bot-only causal anomaly signals through the same governed interface.
+The capability map changes dynamically when Scout installs, so the existing local external agent seat learns the new actions without a model-specific bridge.
 
 ## Next rung
 
-**NC-013 — Scout Core:** transform Φ-Bot and unlock Resonance Ping, Anchor Mark, Enemy Read, and Contradiction Sense.
+**NC-014 — Backtracking loop:** return to old sewer terrain, Ping what used to look inert, Mark the anchor, and open the first progression route.
 
 ## License
 

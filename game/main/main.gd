@@ -30,6 +30,7 @@ var _boss_warning_timer := 0.0
 @onready var world_state_label: Label = $HUD/MarginContainer/VBoxContainer/WorldState
 @onready var ledger_state_label: Label = $HUD/MarginContainer/VBoxContainer/LedgerState
 @onready var boss_state_label: Label = $HUD/MarginContainer/VBoxContainer/BossState
+@onready var scout_state_label: Label = $HUD/MarginContainer/VBoxContainer/ScoutState
 
 func _ready() -> void:
 	var receipt_ledger := get_node_or_null("/root/ReceiptLedger")
@@ -66,7 +67,10 @@ func _ready() -> void:
 
 	if phi_bot != null:
 		phi_bot.bind_hunter(hunter)
+		phi_bot.bind_world(world)
 		phi_bot.inspect_result.connect(_on_phi_inspect_result)
+		phi_bot.scout_result.connect(_on_phi_scout_result)
+		phi_bot.form_changed.connect(_on_phi_form_changed)
 
 	if runtime_observation_provider != null:
 		runtime_observation_provider.bind(world, hunter, phi_bot)
@@ -81,7 +85,7 @@ func _ready() -> void:
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-012"}
+			"payload": {"milestone": "NC-013"}
 		})
 
 	_update_readout()
@@ -116,6 +120,8 @@ func _connect_world(target: Node) -> void:
 		target.boss_anomaly.connect(_on_boss_anomaly)
 	if target.has_signal("boss_defeated"):
 		target.boss_defeated.connect(_on_boss_defeated)
+	if target.has_signal("scout_core_claimed"):
+		target.scout_core_claimed.connect(_on_scout_core_claimed)
 
 func _process(delta: float) -> void:
 	_boss_warning_timer = maxf(0.0, _boss_warning_timer - delta)
@@ -127,30 +133,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 
-	if event.keycode == KEY_P:
-		_send_phi_ping()
-	elif event.keycode == KEY_O:
+	if event.keycode == KEY_O:
 		_request_phi_observation()
-
-func _send_phi_ping() -> void:
-	var bus := get_node_or_null("/root/ActionBus")
-	if bus == null:
-		receipt_label.text = "RECEIPT: ActionBus unavailable"
-		return
-
-	var room_id := "unknown"
-	if world != null:
-		room_id = str(world.get("current_room_id"))
-
-	bus.submit({
-		"source": "human",
-		"actor": "phi_bot",
-		"action": "PING",
-		"payload": {
-			"target": "world_anchor",
-			"room": room_id
-		}
-	})
 
 func _request_phi_observation() -> void:
 	var protocol := get_node_or_null("/root/PlayerProtocol")
@@ -242,6 +226,7 @@ func _on_world_exit_requested(destination: String) -> void:
 	if runtime_observation_provider != null:
 		runtime_observation_provider.set_world(world)
 	if phi_bot != null:
+		phi_bot.bind_world(world)
 		phi_bot.reset_near_hunter()
 	_last_dialogue = {}
 	_update_dialogue_readout()
@@ -492,9 +477,15 @@ func _update_boss_readout(snapshot: Dictionary = {}) -> void:
 		return
 
 	var boss_snapshot := snapshot
-	if boss_snapshot.is_empty() and fallen_arena != null and fallen_arena.has_method("world_state_snapshot"):
-		var arena_state: Dictionary = fallen_arena.world_state_snapshot()
-		boss_snapshot = arena_state.get("boss", {})
+	var arena_state := {}
+	if fallen_arena != null and fallen_arena.has_method("world_state_snapshot"):
+		arena_state = fallen_arena.world_state_snapshot()
+		if boss_snapshot.is_empty():
+			boss_snapshot = arena_state.get("boss", {})
+
+	if bool(arena_state.get("boss_defeated", false)) and boss_snapshot.is_empty():
+		boss_state_label.text = "THE FALLEN // DEFEATED // %s" % arena_state.get("reward_state", "REWARD UNKNOWN")
+		return
 
 	if boss_snapshot.is_empty():
 		boss_state_label.text = "THE FALLEN: state unavailable"
@@ -511,6 +502,71 @@ func _update_boss_readout(snapshot: Dictionary = {}) -> void:
 		boss_snapshot.get("combat", "?"),
 		boss_snapshot.get("attack", "none")
 	]
+
+func _on_scout_core_claimed(record: Dictionary) -> void:
+	if phi_bot != null and phi_bot.has_method("install_scout_core"):
+		phi_bot.install_scout_core(record)
+
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger != null:
+		ledger.mark_verified({
+			"subject": "phi_bot_form",
+			"value": "SCOUT",
+			"confidence": float(record.get("compatibility", 0.97)),
+			"provenance": {
+				"source_kind": "core_installation",
+				"source_id": str(record.get("core_id", "scout_core_01")),
+				"actor": "phi_bot",
+				"room": _active_room(),
+				"phase": _active_phase()
+			},
+			"data": {
+				"compatibility": record.get("compatibility", 0.97),
+				"abilities": [
+					"RESONANCE_PING",
+					"ANCHOR_MARK",
+					"ENEMY_READ",
+					"CONTRADICTION_SENSE"
+				]
+			},
+			"dedupe_key": "verified|phi_bot_form|SCOUT"
+		})
+
+	_last_dialogue = record.duplicate(true)
+	_update_dialogue_readout()
+	_update_phi_readout()
+
+func _on_phi_form_changed(previous_form: String, current_form: String) -> void:
+	scout_state_label.text = "SCOUT CORE // %s → %s // PING MARK ENEMY_READ CONTRADICTION_SENSE ONLINE" % [
+		previous_form,
+		current_form
+	]
+
+func _on_phi_scout_result(result: Dictionary) -> void:
+	var ability := str(result.get("ability", "SCOUT"))
+	var status := str(result.get("status", "unknown"))
+
+	match ability:
+		"RESONANCE_PING":
+			scout_state_label.text = "SCOUT // PING // %s signals // energy %.0f" % [
+				result.get("signal_count", 0),
+				float(result.get("energy", 0.0))
+			]
+		"ANCHOR_MARK":
+			scout_state_label.text = "SCOUT // MARK // %s // %s" % [
+				result.get("target", "none"),
+				result.get("category", "unknown")
+			]
+		"ENEMY_READ":
+			scout_state_label.text = "SCOUT // ENEMY READ // %s // %s // CONF %.2f" % [
+				result.get("target", "none"),
+				result.get("classification", "unknown"),
+				float(result.get("confidence", 0.0))
+			]
+		"CONTRADICTION_SENSE":
+			scout_state_label.text = "SCOUT // CONTRADICTION SENSE // %s conflicts" % result.get("contradiction_count", 0)
+		_:
+			scout_state_label.text = "SCOUT // %s // %s" % [ability, status]
 
 func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
 	_update_agent_seat_readout()
@@ -704,6 +760,9 @@ func _update_phi_readout() -> void:
 		"ON" if snapshot.get("light_enabled", false) else "OFF",
 		snapshot.get("control_source", "?")
 	]
+
+	if str(snapshot.get("form", "")) == "SCOUT" and scout_state_label.text == "SCOUT: locked":
+		scout_state_label.text = "SCOUT: ONLINE // PING P // ENEMY READ T // MARK G // CONTRADICTION SENSE PASSIVE"
 
 func _update_inspection_readout() -> void:
 	if _last_inspection.is_empty():

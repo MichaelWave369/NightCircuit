@@ -8,6 +8,7 @@ REQUIRED = [
     "game/main/Main.tscn",
     "game/main/main.gd",
     "game/input/human_input_adapter.gd",
+    "game/protocol/runtime_observation_provider.gd",
     "game/actors/hunter/hunter.gd",
     "game/actors/hunter/Hunter.tscn",
     "game/actors/phi_bot/phi_bot.gd",
@@ -21,12 +22,15 @@ REQUIRED = [
     "game/world/inspection/inspectable.gd",
     "game/world/inspection/Inspectable.tscn",
     "protocol/actions/action_contract.gd",
+    "protocol/adapters/adapter_contract.gd",
     "protocol/action_bus/action_bus.gd",
     "protocol/authority/authority_gate.gd",
     "protocol/observations/observation.gd",
+    "protocol/player_protocol.gd",
     "protocol/receipts/receipt_ledger.gd",
     "docs/GAME_DESIGN.md",
     "docs/PLAYER_PROTOCOL.md",
+    "docs/ADAPTERS.md",
     "docs/ARCHITECTURE.md",
     "docs/MOVEMENT.md",
     "docs/WORLD_FLOW.md",
@@ -49,6 +53,7 @@ for autoload in (
     'ActionBus="*res://protocol/action_bus/action_bus.gd"',
     'AuthorityGate="*res://protocol/authority/authority_gate.gd"',
     'ReceiptLedger="*res://protocol/receipts/receipt_ledger.gd"',
+    'PlayerProtocol="*res://protocol/player_protocol.gd"',
 ):
     if autoload not in project:
         print(f"Missing autoload contract: {autoload}")
@@ -60,7 +65,7 @@ if "CAPABILITY != AUTHORITY" not in authority:
     sys.exit(1)
 
 protocol = (ROOT / "docs/PLAYER_PROTOCOL.md").read_text(encoding="utf-8")
-for token in ("source", "actor", "action", "payload", "accepted", "reason"):
+for token in ("source", "actor", "action", "payload", "request_id", "observation"):
     if f"`{token}`" not in protocol and f'"{token}"' not in protocol:
         print(f"Player Protocol is missing required token: {token}")
         sys.exit(1)

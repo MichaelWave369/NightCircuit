@@ -2,65 +2,46 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-Night Circuit combines deliberate 2D exploration, towns that change with the night cycle, hidden routes, evidence-driven mysteries, and a physical AI companion called **Φ-Bot**.
+Night Circuit now has a formal player-facing protocol: **P3, the Φ Player Protocol**.
 
-> An agent is never merely dialogue. If it inhabits the world, it can act upon the world.
+## Current milestone: NC-007 — Φ Player Protocol
 
-## Current milestone: NC-006 — Action Bus Hardening
-
-NC-006 makes the command lifecycle auditable end to end.
-
-Every proposal now moves through:
+P3 exposes three transport-neutral message types:
 
 ```text
-INPUT SOURCE
-    |
-    v
-TYPED ACTION CONTRACT
-    |
-    v
-AUTHORITY GATE
-    |
-    +---- decision receipt
-    |
-    v
-REGISTERED ACTOR EXECUTOR
-    |
-    +---- effect receipt
-    |
-    v
-REPLAY-ORIENTED LEDGER
+DESCRIBE
+OBSERVE
+ACT
 ```
 
-A command being authorized no longer gets confused with a command actually doing something. Humanity has spent enough decades learning that distinction in distributed systems.
+The important part is what it does **not** expose: scene-tree god mode.
 
-### What is new
+An agent observes through an actor-scoped provider and acts through the same Action Bus, Authority Gate, actor execution, and effect receipt path already used by the game.
 
-- versioned action envelope
-- generated action IDs
-- optional request-ID deduplication
-- typed payload validation
-- registered actor executors
-- separate decision and effect receipts
-- effect statuses: applied / noop / refused / failed
-- accepted-action replay tape
-- replay submissions travel through the same governed bus
-
-### Visible example
-
-Press **P** for Φ-Bot PING.
-
-In Broken Form:
+### Observation flow
 
 ```text
-DECISION: ACCEPTED
-EFFECT: REFUSED
-reason: ability_unavailable_in_broken_form
+PLAYER / AGENT
+      |
+      v
+      P3
+      |
+      v
+SCOPED OBSERVATION
+  |           |
+Hunter     Φ-Bot
+view       view
 ```
 
-That is intentional. PING is a legitimate Φ-Bot capability surface, but Broken Form does not possess the installed ability yet.
+Φ-Bot can receive anomaly signals that the Hunter observation does not. Those signals still do not reveal the full inspection finding; INSPECT remains an action with an energy cost.
 
-## Controls
+### Runtime smoke test
+
+Press **O** in the prototype to request a real P3 observation for Φ-Bot through source `agent`.
+
+The HUD reports the observation ID, room, visible entity count, signal count, and scope.
+
+## Existing controls
 
 | Input | Action |
 |---|---|
@@ -75,10 +56,11 @@ That is intentional. PING is a legitimate Φ-Bot capability surface, but Broken 
 | Q | Φ-Bot Light |
 | E | Φ-Bot Inspect |
 | P | Φ-Bot PING test |
+| O | P3 Φ-Bot observation |
 
 ## Next rung
 
-**NC-007 — Φ Player Protocol:** formalize the observation/action schemas and adapter boundary that an external agent seat will consume.
+**NC-008 — Agent Seat:** attach a local external process to P3 so an actual AI can request observations and control Φ-Bot through the governed path.
 
 ## License
 

@@ -277,6 +277,26 @@ func _emit_state() -> void:
 	state_changed.emit(actor_snapshot())
 	queue_redraw()
 
+
+func protocol_capabilities() -> Dictionary:
+	return {
+		"FOLLOW": {"available": true},
+		"HOLD": {"available": true},
+		"MOVE": {"available": true},
+		"LIGHT": {
+			"available": _light_enabled or energy > 0.0,
+			"reason": "" if _light_enabled or energy > 0.0 else "insufficient_energy"
+		},
+		"INSPECT": {
+			"available": energy >= INSPECT_COST,
+			"reason": "" if energy >= INSPECT_COST else "insufficient_energy"
+		},
+		"PING": {"available": false, "reason": "ability_unavailable_in_broken_form"},
+		"SCAN": {"available": false, "reason": "ability_unavailable_in_broken_form"},
+		"MARK": {"available": false, "reason": "ability_unavailable_in_broken_form"},
+		"INTERACT": {"available": false, "reason": "not_implemented"}
+	}
+
 func _draw() -> void:
 	var shell := Color(0.43, 0.82, 0.93, 1.0)
 	var core := Color(0.84, 0.96, 1.0, 1.0)

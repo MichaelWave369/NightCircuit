@@ -6,104 +6,86 @@
 Human / Gamepad / Agent / Network / Replay / Script
                        |
                        v
-                 Action Contract
-                       |
-                       v
-                   ActionBus
-                       |
-                 decision receipt
-                       |
-                       v
-                AuthorityGate
-                       |
-                  accepted?
-                 /         \
-               no           yes
-               |             |
-               v             v
-        rejected receipt  actor executor
-                             |
-                             v
-                        effect receipt
+                 P3 Adapter Boundary
+                 /                \
+            OBSERVE               ACT
+               |                  |
+               v                  v
+       Scoped Observation    Action Contract
+                                  |
+                                  v
+                              ActionBus
+                                  |
+                            decision receipt
+                                  |
+                                  v
+                           AuthorityGate
+                                  |
+                             accepted?
+                            /         \
+                          no           yes
+                          |             |
+                          v             v
+                   rejected receipt  actor executor
+                                        |
+                                        v
+                                   effect receipt
 ```
 
-## Input adapters
+## P3
 
-Adapters translate device, network, replay, script, or model-specific output into the shared action envelope.
+NC-007 introduces a transport-neutral player protocol.
 
-They do not hold privileged references to actors.
+A transport only needs to call:
 
-## Action Contract
+`PlayerProtocol.handle_adapter_message(source, message)`
 
-NC-006 introduces a typed structural boundary before authority.
+Supported message types:
 
-It owns:
+- describe
+- observe
+- act
 
-- action schema
-- generated action IDs
-- payload validation
-- effect status validation
-- receipt/replay schema identifiers
+This means NC-008 can add external connectivity without creating another game API.
 
-## Action Bus
+## Observation providers
 
-The Action Bus now owns the complete command lifecycle:
+PlayerProtocol does not inspect the scene tree itself.
 
-1. normalize
-2. validate
-3. deduplicate optional request IDs
-4. ask Authority Gate
-5. record decision
-6. dispatch to a registered actor executor
-7. validate actor result
-8. record effect
+Game runtime code registers scoped observation providers for actors.
 
-The bus remains source-agnostic.
+The current sewer provider exposes:
 
-## Authority Gate
+- nearby embodied entities
+- actor state
+- actor capability availability
+- room/checkpoint metadata
+- Φ-Bot-only anomaly signals
 
-Authority still answers whether a source is allowed to propose a verb for an actor.
+It does not expose an omniscient scene dump.
 
-Capability and runtime state remain actor concerns.
+## Action path
 
-That allows a useful distinction:
+P3 ACT messages enter the NC-006 Action Bus exactly like other sources.
 
-```text
-PING is an authorized Φ-Bot verb
-but
-BROKEN form cannot execute PING yet
-```
+The PlayerProtocol cannot directly call Hunter or Φ-Bot execution methods.
 
-Decision: accepted.
+## Capability versus authority
 
-Effect: refused.
+Authority answers whether a source may ask an actor to perform a verb.
 
-## Actor execution
+The actor capability map answers whether that verb is currently available.
 
-Hunter and Φ-Bot register `execute_action(action)` with the Action Bus.
-
-Actors return:
-
-```text
-status + reason + effect
-```
-
-instead of silently consuming a global accepted-action signal.
-
-The accepted/rejected signals remain available for observers, telemetry, and future tools, but they are no longer the execution transport.
+Both are observable, and neither substitutes for the other.
 
 ## Receipts
 
-The Receipt Ledger stores separate decision and effect receipts.
+P3 action responses include the same correlated decision/effect receipts already stored by ReceiptLedger.
 
-Decision receipts answer what governance decided.
-
-Effect receipts answer what immediate actor execution reported.
-
-Reality evidence remains a separate domain.
+No parallel receipt system is introduced.
 
 ## Replay
 
-Accepted decision receipts can be projected into a replay tape and resubmitted through the same governed path.
+Replay remains a governed Action Bus source.
 
-NC-006 does not yet promise frame-exact deterministic replay. It establishes the input provenance needed to test that claim later.
+P3 is complementary: it is the semantic player-facing boundary, while replay is a provenance-preserving source of actions.

@@ -13,6 +13,7 @@ run/main_scene="res://game/main/Main.tscn"
 ActionBus="*res://protocol/action_bus/action_bus.gd"
 AuthorityGate="*res://protocol/authority/authority_gate.gd"
 ReceiptLedger="*res://protocol/receipts/receipt_ledger.gd"
+PlayerProtocol="*res://protocol/player_protocol.gd"
 
 [display]
 

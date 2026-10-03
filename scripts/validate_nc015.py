@@ -88,7 +88,6 @@ require_tokens(
 require_tokens(
     "game/main/Main.tscn",
     [
-        "NC-015 // VERTICAL SLICE 0.1",
         "QualificationState",
         "SaveState",
     ],

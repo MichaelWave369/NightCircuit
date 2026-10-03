@@ -34,6 +34,7 @@ var _boss_warning_timer := 0.0
 @onready var backtrack_state_label: Label = $HUD/MarginContainer/VBoxContainer/BacktrackState
 @onready var qualification_state_label: Label = $HUD/MarginContainer/VBoxContainer/QualificationState
 @onready var save_state_label: Label = $HUD/MarginContainer/VBoxContainer/SaveState
+@onready var playtest_state_label: Label = $HUD/MarginContainer/VBoxContainer/PlaytestState
 
 func _ready() -> void:
 	var receipt_ledger := get_node_or_null("/root/ReceiptLedger")
@@ -82,13 +83,22 @@ func _ready() -> void:
 		local_agent_server.server_state_changed.connect(_on_agent_server_state_changed)
 		local_agent_server.message_processed.connect(_on_agent_message_processed)
 
+	var recorder := get_node_or_null("/root/PlaytestRecorder")
+	if recorder != null and recorder.has_method("record_event"):
+		recorder.event_recorded.connect(_on_playtest_event_recorded)
+		recorder.record_event("slice.ready", {
+			"milestone": "NC-016",
+			"world": _active_world_id(),
+			"room": _active_room()
+		})
+
 	var bus := get_node_or_null("/root/ActionBus")
 	if bus != null:
 		bus.submit({
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-015"}
+			"payload": {"milestone": "NC-016"}
 		})
 
 	_update_readout()
@@ -103,6 +113,7 @@ func _ready() -> void:
 	_update_backtrack_readout()
 	_update_qualification_readout()
 	_update_save_readout()
+	_update_playtest_readout()
 
 func _connect_world(target: Node) -> void:
 	if target == null:
@@ -152,6 +163,45 @@ func _unhandled_input(event: InputEvent) -> void:
 		_save_run()
 	elif event.keycode == KEY_F9:
 		_load_run()
+	elif event.keycode == KEY_F7:
+		_export_playtest_summary()
+	elif event.keycode == KEY_F8:
+		_mark_playtest_checkpoint()
+
+func _mark_playtest_checkpoint() -> void:
+	var recorder := get_node_or_null("/root/PlaytestRecorder")
+	if recorder == null or not recorder.has_method("mark"):
+		return
+	recorder.mark("manual_checkpoint", {
+		"world": _active_world_id(),
+		"room": _active_room(),
+		"checkpoint": _current_checkpoint
+	})
+
+func _export_playtest_summary() -> void:
+	var recorder := get_node_or_null("/root/PlaytestRecorder")
+	if recorder == null or not recorder.has_method("export_summary"):
+		return
+	var path := str(recorder.export_summary())
+	playtest_state_label.text = "PLAYTEST: SUMMARY // %s" % path
+
+func _on_playtest_event_recorded(_event: Dictionary) -> void:
+	_update_playtest_readout()
+
+func _update_playtest_readout() -> void:
+	var recorder := get_node_or_null("/root/PlaytestRecorder")
+	if recorder == null or not recorder.has_method("is_enabled") or not recorder.is_enabled():
+		playtest_state_label.text = "PLAYTEST: recorder disabled in release build"
+		return
+	playtest_state_label.text = "PLAYTEST: REC %s events // F8 marker // F7 summary // %s" % [
+		recorder.event_count(),
+		recorder.current_log_path()
+	]
+
+func _record_playtest_event(event_name: String, data: Dictionary = {}) -> void:
+	var recorder := get_node_or_null("/root/PlaytestRecorder")
+	if recorder != null and recorder.has_method("record_event"):
+		recorder.record_event(event_name, data)
 
 func _save_run() -> void:
 	var run_save := get_node_or_null("/root/RunSave")
@@ -316,6 +366,11 @@ func _update_protocol_description() -> void:
 		]
 
 func _on_world_exit_requested(destination: String) -> void:
+	_record_playtest_event("world.transition_requested", {
+		"from": _active_world_id(),
+		"destination": destination,
+		"checkpoint": _current_checkpoint
+	})
 	match destination:
 		"ash_village":
 			sewer_world.set_active(false)
@@ -561,6 +616,7 @@ func _on_boss_state_changed(snapshot: Dictionary) -> void:
 	_update_boss_readout(snapshot)
 
 func _on_boss_anomaly(event: Dictionary) -> void:
+	_record_playtest_event("boss.anomaly", event)
 	_boss_warning_timer = 1.1
 	boss_state_label.text = "Φ-BOT WARNING // ATTACK DETECTED: NO PHYSICAL SOURCE // %s" % event.get("attack", "?")
 
@@ -582,6 +638,7 @@ func _on_boss_anomaly(event: Dictionary) -> void:
 		})
 
 func _on_boss_defeated(snapshot: Dictionary) -> void:
+	_record_playtest_event("boss.defeated", snapshot)
 	boss_state_label.text = "THE FALLEN // DEFEATED // SCOUT CORE DETECTED"
 
 	var ledger := get_node_or_null("/root/RealityLedger")
@@ -637,6 +694,7 @@ func _update_boss_readout(snapshot: Dictionary = {}) -> void:
 	]
 
 func _on_scout_core_claimed(record: Dictionary) -> void:
+	_record_playtest_event("scout.core_claimed", record)
 	if phi_bot != null and phi_bot.has_method("install_scout_core"):
 		phi_bot.install_scout_core(record)
 
@@ -709,6 +767,7 @@ func _on_phi_scout_result(result: Dictionary) -> void:
 			scout_state_label.text = "SCOUT // %s // %s" % [ability, status]
 
 func _on_backtrack_route_opened(record: Dictionary) -> void:
+	_record_playtest_event("backtrack.route_opened", record)
 	var ledger := get_node_or_null("/root/RealityLedger")
 	if ledger != null:
 		ledger.mark_verified({
@@ -730,6 +789,7 @@ func _on_backtrack_route_opened(record: Dictionary) -> void:
 	_update_world_state_readout()
 
 func _on_backtrack_discovery(record: Dictionary) -> void:
+	_record_playtest_event("backtrack.discovery", record)
 	var ledger := get_node_or_null("/root/RealityLedger")
 	if ledger != null:
 		ledger.record_evidence({
@@ -768,6 +828,7 @@ func _update_backtrack_readout() -> void:
 	backtrack_state_label.text = "BACKTRACK: return to INTAKE SHAFT // PING → MARK dormant anchor"
 
 func _on_altermath_teaser(record: Dictionary) -> void:
+	_record_playtest_event("slice.altermath_teaser", record)
 	world_state_label.text = "ALTERMATH LAYER DETECTED // CAUSE %s // LOCAL REALITY CONSISTENCY %s%%" % [
 		record.get("cause", "UNKNOWN"),
 		record.get("local_reality_consistency", 63)
@@ -862,6 +923,11 @@ func _on_hunter_respawned(checkpoint_id: String) -> void:
 		_update_status(str(world.get("current_room_id")))
 
 func _on_hunter_defeated() -> void:
+	_record_playtest_event("hunter.defeated", {
+		"world": _active_world_id(),
+		"room": _active_room(),
+		"checkpoint": _current_checkpoint
+	})
 	if world != null and world.has_method("respawn_hunter"):
 		world.respawn_hunter()
 

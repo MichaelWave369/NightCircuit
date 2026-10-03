@@ -11,6 +11,7 @@ REQUIRED = [
     "game/protocol/runtime_observation_provider.gd",
     "game/reality/reality_ledger.gd",
     "game/save/run_save.gd",
+    "game/qualification/playtest_recorder.gd",
     "game/actors/hunter/hunter.gd",
     "game/actors/hunter/Hunter.tscn",
     "game/actors/phi_bot/phi_bot.gd",
@@ -41,6 +42,7 @@ REQUIRED = [
     "protocol/transports/local_agent_server.gd",
     "tools/p3_client.py",
     "tools/p3_ollama_agent.py",
+    "tools/summarize_playtest.py",
     "docs/GAME_DESIGN.md",
     "docs/PLAYER_PROTOCOL.md",
     "docs/ADAPTERS.md",
@@ -58,6 +60,7 @@ REQUIRED = [
     "docs/SCOUT_CORE.md",
     "docs/BACKTRACKING_LOOP.md",
     "docs/QUALIFICATION.md",
+    "docs/PLAYTEST_PROTOCOL.md",
 ]
 
 missing = [path for path in REQUIRED if not (ROOT / path).is_file()]
@@ -75,6 +78,7 @@ for autoload in (
     'PlayerProtocol="*res://protocol/player_protocol.gd"',
     'RealityLedger="*res://game/reality/reality_ledger.gd"',
     'RunSave="*res://game/save/run_save.gd"',
+    'PlaytestRecorder="*res://game/qualification/playtest_recorder.gd"',
 ):
     if autoload not in project:
         print(f"Missing autoload contract: {autoload}")

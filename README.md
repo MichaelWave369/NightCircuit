@@ -2,7 +2,7 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Vertical Slice 0.1 + NC-018 PixelForge Runtime Bridge
+## Vertical Slice 0.1 + NC-019 PixelForge Async Model Seat
 
 The first complete slice remains:
 
@@ -11,7 +11,7 @@ Drain → Ash Village → Night → The Fallen → Scout → Backtrack
       → Service Vein → Altermath teaser
 ```
 
-NC-016 added the playtest harness. NC-017 hardened first local boot. NC-018 now makes Night Circuit the second full game to implement PixelForge Runtime Bridge v1 without replacing its native Godot protocols.
+NC-016 added the playtest harness. NC-017 hardened first local boot. NC-018 added Runtime Bridge v1. NC-019 now drives the existing external Φ-Bot P3 seat through the canonical PixelForge async host, model policy, and Ollama provider stack.
 
 ### Playtest capture
 
@@ -74,3 +74,21 @@ Because Night Circuit is engine-clocked, the descriptor explicitly reports
 than pretending a bridge batch is a Godot physics frame.
 
 See `docs/PIXELFORGE_RUNTIME_BRIDGE.md`.
+
+
+### NC-019 PixelForge async model seat
+
+Night Circuit now qualifies the merged PixelForge model stack across a real
+process boundary:
+
+```text
+Ollama Provider -> Model Policy -> Async Runtime Host
+       -> TCP JSONL -> Godot P3 -> Φ-Bot
+```
+
+CI launches the real game headlessly and requires an accepted/applied HOLD action
+plus a subsequent bounded observation showing Φ-Bot in HOLD mode.
+
+A live installed Ollama model can use the same path from `tools/pixelforge`.
+
+See `docs/PIXELFORGE_ASYNC_MODEL_SEAT.md`.

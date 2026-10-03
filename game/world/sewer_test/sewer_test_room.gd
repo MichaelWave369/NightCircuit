@@ -7,6 +7,7 @@ signal hunter_respawned(checkpoint_id: String)
 signal exit_requested(destination: String)
 signal backtrack_route_opened(record: Dictionary)
 signal backtrack_discovery(record: Dictionary)
+signal altermath_teaser(record: Dictionary)
 
 const WORLD_SIZE := Vector2(3840.0, 720.0)
 const KILL_Y := 820.0
@@ -218,6 +219,18 @@ func protocol_signals(observer_position: Vector2, max_range: float) -> Dictionar
 					residue_position.y - observer_position.y
 				]
 			}
+			result["altermath_layer_01"] = {
+				"object_id": "altermath_layer_01",
+				"category": "altermath_layer",
+				"classification": "cause_unknown",
+				"confidence": 0.63,
+				"local_reality_consistency": 63,
+				"distance": residue_distance,
+				"relative_position": [
+					residue_position.x - observer_position.x,
+					residue_position.y - observer_position.y
+				]
+			}
 
 	return result
 
@@ -327,6 +340,18 @@ func _on_backtrack_discovery_body_entered(body: Node) -> void:
 		"detail": "Hunter entered the reconstructed Service Vein above Intake Shaft."
 	}
 	backtrack_discovery.emit(record.duplicate(true))
+
+	var teaser := {
+		"status": "observed",
+		"event": "altermath_layer_detected",
+		"subject": "altermath_layer_01",
+		"value": "detected",
+		"confidence": 0.63,
+		"local_reality_consistency": 63,
+		"cause": "UNKNOWN",
+		"detail": "A second causal outline overlaps the Service Vein. Cause unresolved."
+	}
+	altermath_teaser.emit(teaser.duplicate(true))
 	queue_redraw()
 
 func activate_checkpoint(checkpoint_id: String, silent: bool = false) -> void:

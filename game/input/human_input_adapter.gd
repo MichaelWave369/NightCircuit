@@ -28,6 +28,7 @@ var _last_crouch := false
 
 func _ready() -> void:
 	_ensure_keyboard_actions()
+	_ensure_controller_actions()
 	_publish_current_state(true)
 
 func _physics_process(_delta: float) -> void:
@@ -116,14 +117,70 @@ func _ensure_keyboard_actions() -> void:
 	_ensure_key_action(INPUT_PHI_SCAN, [KEY_T])
 	_ensure_key_action(INPUT_PHI_MARK, [KEY_G])
 
-func _ensure_key_action(action_name: String, keycodes: Array) -> void:
+func _ensure_controller_actions() -> void:
+	# Hunter: left stick / D-pad + ABXY + right shoulder.
+	_add_joy_axis(INPUT_LEFT, JOY_AXIS_LEFT_X, -1.0)
+	_add_joy_axis(INPUT_RIGHT, JOY_AXIS_LEFT_X, 1.0)
+	_add_joy_button(INPUT_LEFT, JOY_BUTTON_DPAD_LEFT)
+	_add_joy_button(INPUT_RIGHT, JOY_BUTTON_DPAD_RIGHT)
+	_add_joy_button(INPUT_JUMP, JOY_BUTTON_A)
+	_add_joy_button(INPUT_JUMP, JOY_BUTTON_DPAD_UP)
+	_add_joy_button(INPUT_CROUCH, JOY_BUTTON_DPAD_DOWN)
+	_add_joy_axis(INPUT_CROUCH, JOY_AXIS_LEFT_Y, 1.0)
+	_add_joy_button(INPUT_LIGHT_ATTACK, JOY_BUTTON_X)
+	_add_joy_button(INPUT_HEAVY_ATTACK, JOY_BUTTON_Y)
+	_add_joy_button(INPUT_DODGE, JOY_BUTTON_B)
+	_add_joy_button(INPUT_INTERACT, JOY_BUTTON_RIGHT_SHOULDER)
+
+	# Φ-Bot: deliberately separate controls, still routed through ActionBus.
+	_add_joy_button(INPUT_PHI_FOLLOW, JOY_BUTTON_BACK)
+	_add_joy_button(INPUT_PHI_HOLD, JOY_BUTTON_START)
+	_add_joy_axis(INPUT_PHI_LIGHT, JOY_AXIS_TRIGGER_LEFT, 1.0)
+	_add_joy_button(INPUT_PHI_INSPECT, JOY_BUTTON_LEFT_SHOULDER)
+	_add_joy_button(INPUT_PHI_PING, JOY_BUTTON_LEFT_STICK)
+	_add_joy_button(INPUT_PHI_SCAN, JOY_BUTTON_RIGHT_STICK)
+	_add_joy_axis(INPUT_PHI_MARK, JOY_AXIS_TRIGGER_RIGHT, 1.0)
+
+func _ensure_action(action_name: String) -> void:
 	if not InputMap.has_action(action_name):
 		InputMap.add_action(action_name)
 
-	if not InputMap.action_get_events(action_name).is_empty():
+func _ensure_key_action(action_name: String, keycodes: Array) -> void:
+	_ensure_action(action_name)
+
+	var has_key := false
+	for existing in InputMap.action_get_events(action_name):
+		if existing is InputEventKey:
+			has_key = true
+			break
+	if has_key:
 		return
 
 	for keycode in keycodes:
 		var key_event := InputEventKey.new()
 		key_event.physical_keycode = int(keycode)
 		InputMap.action_add_event(action_name, key_event)
+
+func _add_joy_button(action_name: String, button_index: int) -> void:
+	_ensure_action(action_name)
+
+	for existing in InputMap.action_get_events(action_name):
+		if existing is InputEventJoypadButton and existing.button_index == button_index:
+			return
+
+	var event := InputEventJoypadButton.new()
+	event.button_index = button_index
+	InputMap.action_add_event(action_name, event)
+
+func _add_joy_axis(action_name: String, axis: int, axis_value: float) -> void:
+	_ensure_action(action_name)
+
+	for existing in InputMap.action_get_events(action_name):
+		if existing is InputEventJoypadMotion:
+			if existing.axis == axis and is_equal_approx(existing.axis_value, axis_value):
+				return
+
+	var event := InputEventJoypadMotion.new()
+	event.axis = axis
+	event.axis_value = axis_value
+	InputMap.action_add_event(action_name, event)

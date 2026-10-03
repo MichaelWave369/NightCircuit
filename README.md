@@ -2,79 +2,68 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Current milestone: NC-014 — Backtracking Loop
+## Vertical Slice 0.1 — NC-015
 
-The first Metroidvania loop now closes.
-
-After earning the Scout Core from The Fallen, return all the way to **Intake Shaft**.
-
-Near the old upper wall:
+The first complete Night Circuit progression loop is now assembled and qualification-gated:
 
 ```text
-P  Resonance Ping
+THE DRAIN
    ↓
-intake_anchor_01 detected
+ASH VILLAGE
    ↓
-G  Anchor Mark
+DAY / NIGHT + conflicting testimony
    ↓
-dormant geometry reconstructs
+THE FALLEN
    ↓
-climb the new upper platforms
+SCOUT CORE
    ↓
-SERVICE VEIN // UNMAPPED
+backtrack to INTAKE SHAFT
+   ↓
+PING + MARK dormant anchor
+   ↓
+SERVICE VEIN
+   ↓
+ALTERMATH LAYER DETECTED
 ```
 
-The room was always there.
+### Save / load
 
-Your ability to perceive and stabilize its route was not.
+- **F5** save current run position/state
+- **F9** load the run slot
 
-### Persistent route
+Knowledge/progression remains in the Reality Ledger. The run slot stores location, checkpoint, health, and village phase.
 
-Opening the route writes:
+Boss combat resumes from a safe arena reset instead of attempting to serialize a half-finished attack frame.
+
+### Controller support
+
+Controller input enters the same HumanInputAdapter → ActionBus → Authority Gate path as keyboard input.
+
+Hunter supports left stick/D-pad movement plus standard ABXY combat/traversal controls. Φ-Bot Scout commands also have controller bindings.
+
+### Altermath teaser
+
+After discovering Service Vein:
 
 ```text
-verified
-intake_anchor_01 = route_open
+ALTERMATH LAYER DETECTED
+CAUSE: UNKNOWN
+LOCAL REALITY CONSISTENCY: 63%
 ```
 
-Reaching the hidden passage writes:
+It is recorded as an in-game observation, not presented as established real-world physics.
 
-```text
-evidence
-service_vein_01 = discovered
-```
+### Runtime qualification
 
-Both survive restart through the Reality Ledger.
+CI now includes pinned Godot 4.3 headless parse/import and boot-smoke jobs in addition to all NC-002 through NC-015 contract validators.
 
-### Agent-native backtracking
+That matters because "the Python script found the right words" is a tragically low bar for declaring a game runnable.
 
-External Φ-Bot agents use the same P3 actions:
+## Status
 
-```text
-OBSERVE
-PING
-MARK intake_anchor_01
-OBSERVE
-```
+**Vertical Slice 0.1 candidate**
 
-There is no agent-only shortcut.
-
-### The next weird thing
-
-Inside the Service Vein, Scout can detect:
-
-```text
-keyhole_residue_01
-category: causal_residue
-classification: cause_unknown
-confidence: 0.71
-```
-
-No explanation yet. The game is allowed to keep one secret for more than six minutes.
-
-## Next rung
-
-**NC-015 — Vertical Slice 0.1 qualification:** test and harden the whole Drain → Village → Night → Fallen → Scout → Backtrack loop as one playable build.
+The slice still needs hands-on playtest/tuning before anything resembling a public gameplay release, but its core identity is now represented end to end.
 
 ## License
 

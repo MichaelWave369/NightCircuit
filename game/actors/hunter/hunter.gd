@@ -346,6 +346,12 @@ func restore_full_health() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
 
+func restore_health_for_load(saved_health: int) -> void:
+	health = clampi(saved_health, 1, max_health)
+	_combat_state = CombatState.READY
+	_damage_invulnerability_timer = 0.0
+	health_changed.emit(health, max_health)
+
 func _apply_horizontal_motion(delta: float) -> void:
 	if _combat_state == CombatState.DODGE or _combat_state == CombatState.HURT or _combat_state == CombatState.DEAD:
 		return

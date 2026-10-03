@@ -78,11 +78,11 @@ func _process(_delta: float) -> void:
 			_drop_client(index)
 			continue
 
-		var available := peer.get_available_bytes()
+		var available: int = peer.get_available_bytes()
 		if available <= 0:
 			continue
 
-		var peer_id := peer.get_instance_id()
+		var peer_id: int = int(peer.get_instance_id())
 		var buffer := str(_buffers.get(peer_id, ""))
 		buffer += peer.get_utf8_string(available)
 		_buffers[peer_id] = buffer
@@ -120,7 +120,7 @@ func _accept_connections() -> void:
 		_emit_state()
 
 func _drain_peer(peer: StreamPeerTCP) -> bool:
-	var peer_id := peer.get_instance_id()
+	var peer_id: int = int(peer.get_instance_id())
 	var buffer := str(_buffers.get(peer_id, ""))
 	var processed := 0
 
@@ -223,7 +223,7 @@ func _augment_response(response: Dictionary, message_type: String) -> Dictionary
 	return augmented
 
 func _action_rate_allowed(peer: StreamPeerTCP) -> bool:
-	var peer_id := peer.get_instance_id()
+	var peer_id: int = int(peer.get_instance_id())
 	var now := Time.get_ticks_msec()
 	var last := int(_last_action_ms.get(peer_id, -1000000))
 
@@ -272,7 +272,7 @@ func _drop_client(index: int) -> void:
 
 	var peer = _clients[index]
 	if peer is StreamPeerTCP:
-		var peer_id := peer.get_instance_id()
+		var peer_id: int = int(peer.get_instance_id())
 		_buffers.erase(peer_id)
 		_last_action_ms.erase(peer_id)
 		peer.disconnect_from_host()

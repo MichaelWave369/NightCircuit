@@ -3,8 +3,9 @@
 ## Progress
 
 - **NC-001 — COMPLETE:** agent-native Godot skeleton, authority seam, receipts
-- **NC-002 — COMPLETE IN THIS CHANGE:** Hunter movement controller and governed human input
-- **NC-003 — NEXT:** sewer traversal greybox, camera, checkpoints, room flow
+- **NC-002 — COMPLETE:** Hunter movement controller and governed human input
+- **NC-003 — COMPLETE IN THIS CHANGE:** sewer traversal greybox, camera, checkpoints, room flow
+- **NC-004 — NEXT:** combat foundation
 
 ## Vertical-slice ladder
 

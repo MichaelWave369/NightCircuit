@@ -21,3 +21,5 @@ jobs:
         run: python scripts/validate_structure.py
       - name: Validate NC-002 movement contract
         run: python scripts/validate_nc002.py
+      - name: Validate NC-003 world flow
+        run: python scripts/validate_nc003.py

@@ -8,40 +8,17 @@ The defining rule is simple:
 
 > An agent is never merely dialogue. If it inhabits the world, it can act upon the world.
 
-## Current milestone: NC-002 — Hunter Controller
+## Current milestone: NC-003 — Sewer Test Room
 
-NC-002 turns the skeleton into the first playable movement lab.
+NC-003 replaces the one-screen movement lab with the first traversable world slice: a three-room sewer greybox with camera bounds, checkpoints, hazards, and room flow.
 
-The Hunter now supports:
+The Hunter now moves through:
 
-- run with acceleration and braking
-- jump buffering and coyote time
-- short-hop jump release
-- crouch with a reduced collider
-- wall slide
-- wall kick
-- ledge grab and controlled release
-- a governed human input adapter that never writes directly to Hunter velocity
+1. **INTAKE SHAFT** — basic run/jump gap
+2. **SPILLWAY** — wall-kick and vertical traversal
+3. **CISTERN APPROACH** — ledges leading toward the future Fallen arena
 
-The control path remains:
-
-```text
-Human / Gamepad / Agent / Network / Replay / Script
-                       |
-                       v
-                  ACTION BUS
-                       |
-                       v
-                AUTHORITY GATE
-                       |
-                       v
-                     ACTOR
-                       |
-                       v
-                    RECEIPT
-```
-
-NC-002 is intentionally still a movement lab. **NC-003** turns it into the first sewer traversal greybox with camera, checkpoints, and room flow.
+Checkpoints are session-local on purpose. Save persistence belongs later.
 
 ## Quick start
 
@@ -60,22 +37,27 @@ NC-002 is intentionally still a movement lab. **NC-003** turns it into the first
 | S / Down Arrow | Crouch / drop from ledge |
 | P | Governed Φ-Bot PING smoke action |
 
-The human input adapter registers these keyboard bindings at runtime if the actions do not already exist. That keeps the controller logic behind the same action seam that future remapping and agent adapters will use.
+## Architecture
 
-## Design pillars
+Human input still does not write directly to Hunter velocity.
 
-- **Metroidvania first.** Movement, combat, map knowledge, and meaningful backtracking must stand on their own.
-- **AI is a player seat.** Φ-Bot is a world actor, not a chat panel with wings.
-- **Capability is not authority.** Every action source enters the same governed action path.
-- **Evidence is gameplay.** The Reality Ledger stores observations and contradictions rather than ordinary quest checkboxes.
-- **Incomplete viewpoints.** Human and agent players never receive identical information.
-- **Altermath changes traversal.** Hidden causal structure eventually becomes a navigable layer of the world.
+```text
+Input adapter
+    ↓
+Action Bus
+    ↓
+Authority Gate
+    ↓
+Hunter
+    ↓
+World traversal
+```
 
-See `docs/` for the design contract and vertical-slice plan.
+The world may respawn or constrain the Hunter, but it does not bypass the action contract for ordinary player movement.
 
 ## Roadmap
 
-NC-001 through NC-015 builds toward the first playable slice, **The Drain**, ending with The Fallen boss, Scout Core, immediate backtracking payoff, and the first Altermath anomaly.
+NC-004 is combat: light attack, heavy attack, dodge, damage, health, and a simple enemy family.
 
 ## License
 

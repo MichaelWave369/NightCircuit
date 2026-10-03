@@ -31,3 +31,7 @@ jobs:
         run: python scripts/validate_nc006.py
       - name: Validate NC-007 player protocol
         run: python scripts/validate_nc007.py
+      - name: Validate NC-008 local agent seat
+        run: python scripts/validate_nc008.py
+      - name: Compile external P3 clients
+        run: python -m py_compile tools/p3_client.py tools/p3_ollama_agent.py

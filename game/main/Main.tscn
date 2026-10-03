@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource path="res://game/main/main.gd" type="Script" id="1_main"]
 [ext_resource path="res://game/actors/hunter/Hunter.tscn" type="PackedScene" id="2_hunter"]
@@ -8,6 +8,7 @@
 [ext_resource path="res://game/actors/phi_bot/PhiBot.tscn" type="PackedScene" id="6_phi"]
 [ext_resource path="res://game/world/inspection/Inspectable.tscn" type="PackedScene" id="7_inspectable"]
 [ext_resource path="res://game/protocol/runtime_observation_provider.gd" type="Script" id="8_observer"]
+[ext_resource path="res://protocol/transports/local_agent_server.gd" type="Script" id="9_agent_server"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -50,13 +51,16 @@ script = ExtResource("3_input")
 [node name="RuntimeObservationProvider" type="Node" parent="."]
 script = ExtResource("8_observer")
 
+[node name="LocalAgentServer" type="Node" parent="."]
+script = ExtResource("9_agent_server")
+
 [node name="HUD" type="CanvasLayer" parent="."]
 
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
 offset_left = 30.0
 offset_top = 24.0
 offset_right = 1230.0
-offset_bottom = 425.0
+offset_bottom = 462.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
@@ -73,7 +77,7 @@ text = "Φ: NIGHT CIRCUIT"
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
 theme_override_font_sizes/font_size = 17
-text = "NC-007 // Φ PLAYER PROTOCOL"
+text = "NC-008 // LOCAL AGENT SEAT"
 
 [node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
@@ -82,11 +86,11 @@ text = "ROOM: INTAKE SHAFT"
 
 [node name="Status" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.66, 0.86, 0.75, 1)
-text = "CHECKPOINT: drain_entry   |   EFFECT RECEIPTS: ARMED   |   P3: READY"
+text = "CHECKPOINT: drain_entry   |   EFFECT RECEIPTS: ARMED   |   P3: READY   |   AGENT SEAT: LOCAL"
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "O: scoped Φ-Bot observation   P: governed PING   F/H/Q/E: Φ-Bot commands"
+text = "O: in-game P3 observation   |   external seat: 127.0.0.1:36970   |   F/H/Q/E: Φ-Bot commands"
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
@@ -115,3 +119,7 @@ text = "REPLAY TAPE: 0 accepted actions"
 [node name="ProtocolState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.62, 0.88, 0.78, 1)
 text = "P3 OBSERVATION: waiting"
+
+[node name="AgentSeatState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.70, 0.82, 0.96, 1)
+text = "AGENT SEAT: starting"

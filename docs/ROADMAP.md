@@ -8,8 +8,9 @@
 - **NC-004 — COMPLETE:** combat, health/damage, dodge, Drain Husk
 - **NC-005 — COMPLETE:** embodied Φ-Bot with follow, hold, light, inspect
 - **NC-006 — COMPLETE:** typed actions, actor dispatch, effect receipts, replay semantics
-- **NC-007 — COMPLETE IN THIS CHANGE:** P3 describe/observe/act boundary and actor-scoped observations
-- **NC-008 — NEXT:** local external agent seat
+- **NC-007 — COMPLETE:** P3 describe/observe/act boundary and actor-scoped observations
+- **NC-008 — COMPLETE IN THIS CHANGE:** loopback external Φ-Bot seat and local model bridge
+- **NC-009 — NEXT:** Ash Village
 
 ## Vertical-slice ladder
 
@@ -22,7 +23,7 @@
 | NC-005 | Φ-Bot entity | follow, hold, light, inspect |
 | NC-006 | Action Bus hardening | typed actions, actor execution, effect receipts |
 | NC-007 | Φ Player Protocol | describe/observe/act schemas and adapter boundary |
-| NC-008 | Agent seat | local external agent can observe and control Φ-Bot safely |
+| NC-008 | Agent seat | local external process can observe/control Φ-Bot and cannot cross into Hunter |
 | NC-009 | Ash Village | NPC schedules and first hub loop |
 | NC-010 | Day/night | state transition changes routes and actors |
 | NC-011 | Reality Ledger | evidence, claims, provenance, contradictions |

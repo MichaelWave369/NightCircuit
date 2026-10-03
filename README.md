@@ -2,46 +2,85 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-Night Circuit now has a formal player-facing protocol: **P3, the Φ Player Protocol**.
+## Current milestone: NC-008 — Local External Agent Seat
 
-## Current milestone: NC-007 — Φ Player Protocol
+Night Circuit now exposes a real external player seat.
 
-P3 exposes three transport-neutral message types:
-
-```text
-DESCRIBE
-OBSERVE
-ACT
-```
-
-The important part is what it does **not** expose: scene-tree god mode.
-
-An agent observes through an actor-scoped provider and acts through the same Action Bus, Authority Gate, actor execution, and effect receipt path already used by the game.
-
-### Observation flow
+When the game is running, a loopback-only TCP JSONL server listens at:
 
 ```text
-PLAYER / AGENT
-      |
-      v
-      P3
-      |
-      v
-SCOPED OBSERVATION
-  |           |
-Hunter     Φ-Bot
-view       view
+127.0.0.1:36970
 ```
 
-Φ-Bot can receive anomaly signals that the Hunter observation does not. Those signals still do not reveal the full inspection finding; INSPECT remains an action with an energy cost.
+That transport is permanently locked to:
 
-### Runtime smoke test
+```text
+source = agent
+actor  = phi_bot
+```
 
-Press **O** in the prototype to request a real P3 observation for Φ-Bot through source `agent`.
+So an external process can DESCRIBE, OBSERVE, and ACT through P3 without receiving Hunter control or direct access to Godot nodes.
 
-The HUD reports the observation ID, room, visible entity count, signal count, and scope.
+### Manual external control
 
-## Existing controls
+```bash
+python tools/p3_client.py describe
+python tools/p3_client.py observe
+python tools/p3_client.py act FOLLOW
+python tools/p3_client.py act INSPECT
+```
+
+### Local AI control with Ollama
+
+With a local Ollama model installed:
+
+```bash
+python tools/p3_ollama_agent.py --model qwen3:4b --steps 30
+```
+
+The loop is real:
+
+```text
+external model
+     |
+     v
+OBSERVE Φ-Bot
+     |
+     v
+choose action
+     |
+     v
+ACT through P3
+     |
+     v
+Action Bus
+     |
+Authority Gate
+     |
+Φ-Bot executor
+     |
+effect receipt
+     |
+     +---- back to model
+```
+
+The external model does not get a cheat pipe. Humanity has tried that architecture often enough.
+
+## Seat safety
+
+NC-008 freezes several development constraints:
+
+- loopback only
+- one connected client
+- Φ-Bot actor lock
+- bounded message size
+- bounded ACT rate
+- existing typed action validation
+- existing Authority Gate
+- existing capability checks
+- existing decision/effect receipts
+
+## In-game controls
 
 | Input | Action |
 |---|---|
@@ -56,11 +95,11 @@ The HUD reports the observation ID, room, visible entity count, signal count, an
 | Q | Φ-Bot Light |
 | E | Φ-Bot Inspect |
 | P | Φ-Bot PING test |
-| O | P3 Φ-Bot observation |
+| O | in-game P3 Φ-Bot observation |
 
 ## Next rung
 
-**NC-008 — Agent Seat:** attach a local external process to P3 so an actual AI can request observations and control Φ-Bot through the governed path.
+**NC-009 — Ash Village:** the first hub with NPC schedules, testimony, routes, and the foundation for the coming day/night state change.
 
 ## License
 

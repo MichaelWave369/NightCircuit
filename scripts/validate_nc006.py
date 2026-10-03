@@ -93,7 +93,7 @@ if "action_accepted.emit" not in action_bus:
 hunter = (ROOT / "game/actors/hunter/hunter.gd").read_text(encoding="utf-8")
 phi_bot = (ROOT / "game/actors/phi_bot/phi_bot.gd").read_text(encoding="utf-8")
 for actor_text, actor_name in ((hunter, "Hunter"), (phi_bot, "PhiBot")):
-    if "connect("action_accepted"" in actor_text:
+    if 'connect("action_accepted"' in actor_text:
         print(f"{actor_name} still uses global accepted-action signal as execution transport.")
         sys.exit(1)
 

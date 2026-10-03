@@ -64,10 +64,19 @@ if "CAPABILITY != AUTHORITY" not in authority:
     print("Authority invariant marker missing.")
     sys.exit(1)
 
+# Protect the public P3 contract itself, not incidental markdown formatting.
 protocol = (ROOT / "docs/PLAYER_PROTOCOL.md").read_text(encoding="utf-8")
-for token in ("source", "actor", "action", "payload", "request_id", "observation"):
-    if f"`{token}`" not in protocol and f'"{token}"' not in protocol:
-        print(f"Player Protocol is missing required token: {token}")
+for marker in (
+    "phi-player-protocol/message/0.3",
+    "phi-player-protocol/response/0.3",
+    "phi-player-protocol/observation/0.3",
+    "describe",
+    "observe",
+    "act",
+    "request_id",
+):
+    if marker not in protocol:
+        print(f"Player Protocol is missing required contract marker: {marker}")
         sys.exit(1)
 
 print("Night Circuit structure validation: PASS")

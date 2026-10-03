@@ -31,3 +31,11 @@ The next work should come from playtest evidence captured by the recorder:
 - packaging
 
 NC-017 should fix the highest-value evidence from real play, not reward our species' instinct to add another subsystem whenever one becomes stable.
+
+## NC-017 — Local first-boot regression
+
+The first Windows/Godot 4.3 hands-on launch exposed five parser errors in the Vertical Slice qualification readout. Dynamic RealityLedger calls were being assigned with inferred `:=` declarations even though the call target is only known as a generic Node at parse time.
+
+NC-017 explicitly converts those dynamic results to `bool` and makes the runtime integration smoke preload `game/main/main.gd`, so this exact parser failure becomes CI-visible.
+
+This rung exists because the first actual player did something revolutionary: ran the game.

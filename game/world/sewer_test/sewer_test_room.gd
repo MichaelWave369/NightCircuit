@@ -533,7 +533,7 @@ func _draw() -> void:
 	# Checkpoints.
 	for checkpoint in CHECKPOINTS:
 		var p: Vector2 = checkpoint["position"]
-		var active := checkpoint["id"] == active_checkpoint_id
+		var active: bool = str(checkpoint["id"]) == active_checkpoint_id
 		var marker_color := Color(0.38, 0.85, 0.74, 1.0) if active else Color(0.25, 0.43, 0.48, 0.8)
 		draw_line(p + Vector2(0.0, 28.0), p + Vector2(0.0, -38.0), marker_color, 4.0)
 		draw_circle(p + Vector2(0.0, -45.0), 9.0, marker_color)

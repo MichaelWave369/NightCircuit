@@ -39,3 +39,20 @@ The first Windows/Godot 4.3 hands-on launch exposed five parser errors in the Ve
 NC-017 explicitly converts those dynamic results to `bool` and makes the runtime integration smoke preload `game/main/main.gd`, so this exact parser failure becomes CI-visible.
 
 This rung exists because the first actual player did something revolutionary: ran the game.
+
+
+## NC-018 — PixelForge Runtime Bridge
+
+Night Circuit implements the same Runtime Bridge v1 surface as Oak while
+preserving Godot engine-clock semantics and native PlayerProtocol governance.
+
+## NC-019 — External PixelForge model seat
+
+The existing loopback P3 agent seat becomes the first real external consumer of
+PixelForge AsyncRuntimeHostV1.
+
+Acceptance requires the canonical PixelForge Ollama provider/model policy/async
+host stack to cross TCP into a real headless Godot process, act only as Φ-Bot,
+receive native decision/effect receipts, and observe the resulting actor state.
+
+This rung adds no second transport and no Hunter authority.

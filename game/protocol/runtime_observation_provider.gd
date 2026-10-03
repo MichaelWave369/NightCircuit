@@ -65,14 +65,14 @@ func _register() -> void:
 	if protocol == null:
 		return
 
-	var hunter_ok := protocol.register_observer(
+	var hunter_ok: bool = bool(protocol.register_observer(
 		"hunter",
 		Callable(self, "build_observation")
-	)
-	var phi_ok := protocol.register_observer(
+	))
+	var phi_ok: bool = bool(protocol.register_observer(
 		"phi_bot",
 		Callable(self, "build_observation")
-	)
+	))
 	_registered = hunter_ok and phi_ok
 
 func _actor_for_id(actor_id: String) -> Node2D:

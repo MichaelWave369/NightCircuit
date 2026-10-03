@@ -1,0 +1,13 @@
+{
+  "name": "night-circuit-pixelforge-tools",
+  "version": "0.19.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "qualify:godot": "node qualify-night-circuit.mjs",
+    "qualify:ollama": "node qualify-night-circuit-ollama.mjs"
+  },
+  "dependencies": {
+    "parallax-pixelforge": "https://github.com/MichaelWave369/parallax-pixelforge/archive/4cd6c50696612231936f4341e9014a8848fc805d.tar.gz"
+  }
+}

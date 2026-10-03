@@ -777,7 +777,7 @@ func _on_altermath_teaser(record: Dictionary) -> void:
 	var ledger := get_node_or_null("/root/RealityLedger")
 	if ledger != null:
 		ledger.record_observation({
-			"subject": str(record.get("subject", "altermath_layer_01")),
+			"subject": "altermath_layer_01",
 			"value": record.get("value", "detected"),
 			"confidence": float(record.get("confidence", 0.63)),
 			"provenance": {

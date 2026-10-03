@@ -76,6 +76,14 @@ static func validate(action: Dictionary) -> Dictionary:
 					return _invalid("phi_light_enabled_must_be_boolean")
 				if payload.has("toggle") and typeof(payload["toggle"]) != TYPE_BOOL:
 					return _invalid("phi_light_toggle_must_be_boolean")
+			"SCAN":
+				if payload.has("mode") and typeof(payload["mode"]) != TYPE_STRING:
+					return _invalid("phi_scan_mode_must_be_string")
+				if payload.has("mode") and str(payload["mode"]) not in ["enemy_read", "contradiction"]:
+					return _invalid("phi_scan_mode_unsupported")
+			"MARK":
+				if payload.has("target") and typeof(payload["target"]) != TYPE_STRING:
+					return _invalid("phi_mark_target_must_be_string")
 			_:
 				pass
 

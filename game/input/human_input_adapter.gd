@@ -18,6 +18,9 @@ const INPUT_PHI_FOLLOW := "nc_phi_follow"
 const INPUT_PHI_HOLD := "nc_phi_hold"
 const INPUT_PHI_LIGHT := "nc_phi_light"
 const INPUT_PHI_INSPECT := "nc_phi_inspect"
+const INPUT_PHI_PING := "nc_phi_ping"
+const INPUT_PHI_SCAN := "nc_phi_scan"
+const INPUT_PHI_MARK := "nc_phi_mark"
 
 var _last_move := 999.0
 var _last_jump := false
@@ -53,6 +56,15 @@ func _physics_process(_delta: float) -> void:
 
 	if Input.is_action_just_pressed(INPUT_PHI_INSPECT):
 		_submit(phi_actor_id, "INSPECT", {})
+
+	if Input.is_action_just_pressed(INPUT_PHI_PING):
+		_submit(phi_actor_id, "PING", {})
+
+	if Input.is_action_just_pressed(INPUT_PHI_SCAN):
+		_submit(phi_actor_id, "SCAN", {"mode": "enemy_read"})
+
+	if Input.is_action_just_pressed(INPUT_PHI_MARK):
+		_submit(phi_actor_id, "MARK", {})
 
 func _publish_current_state(force: bool) -> void:
 	var move_axis := Input.get_axis(INPUT_LEFT, INPUT_RIGHT)
@@ -100,6 +112,9 @@ func _ensure_keyboard_actions() -> void:
 	_ensure_key_action(INPUT_PHI_HOLD, [KEY_H])
 	_ensure_key_action(INPUT_PHI_LIGHT, [KEY_Q])
 	_ensure_key_action(INPUT_PHI_INSPECT, [KEY_E])
+	_ensure_key_action(INPUT_PHI_PING, [KEY_P])
+	_ensure_key_action(INPUT_PHI_SCAN, [KEY_T])
+	_ensure_key_action(INPUT_PHI_MARK, [KEY_G])
 
 func _ensure_key_action(action_name: String, keycodes: Array) -> void:
 	if not InputMap.has_action(action_name):

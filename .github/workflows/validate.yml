@@ -43,3 +43,5 @@ jobs:
         run: python scripts/validate_nc011.py
       - name: Validate NC-012 The Fallen
         run: python scripts/validate_nc012.py
+      - name: Validate NC-013 Scout Core
+        run: python scripts/validate_nc013.py

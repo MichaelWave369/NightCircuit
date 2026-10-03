@@ -13,8 +13,9 @@
 - **NC-009 — COMPLETE:** Ash Village hub, NPC schedules, governed testimony
 - **NC-010 — COMPLETE:** bell-driven day/night state, routes, hostiles, reality consistency
 - **NC-011 — COMPLETE:** persistent claims/evidence/observations with provenance and derived contradictions
-- **NC-012 — COMPLETE IN THIS CHANGE:** The Fallen boss, causal phase-two attack, boss evidence
-- **NC-013 — NEXT:** Scout Core
+- **NC-012 — COMPLETE:** The Fallen boss, causal phase-two attack, boss evidence
+- **NC-013 — COMPLETE IN THIS CHANGE:** Scout Core transformation and first progression ability surface
+- **NC-014 — NEXT:** Backtracking loop
 
 ## Vertical-slice ladder
 

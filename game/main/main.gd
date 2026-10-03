@@ -8,6 +8,7 @@ var _current_checkpoint := "drain_entry"
 @onready var room_label: Label = $HUD/MarginContainer/VBoxContainer/RoomLabel
 @onready var status_label: Label = $HUD/MarginContainer/VBoxContainer/Status
 @onready var movement_state_label: Label = $HUD/MarginContainer/VBoxContainer/MovementState
+@onready var combat_state_label: Label = $HUD/MarginContainer/VBoxContainer/CombatState
 @onready var receipt_label: Label = $HUD/MarginContainer/VBoxContainer/ReceiptLabel
 
 func _ready() -> void:
@@ -23,20 +24,23 @@ func _ready() -> void:
 		world.hunter_respawned.connect(_on_hunter_respawned)
 		world.bind_hunter(hunter)
 
+	if hunter != null:
+		hunter.defeated.connect(_on_hunter_defeated)
+
 	var bus := get_node_or_null("/root/ActionBus")
 	if bus != null:
 		_last_receipt = bus.submit({
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-003"}
+			"payload": {"milestone": "NC-004"}
 		})
 		_update_receipt_label()
 
-	_update_movement_readout()
+	_update_hunter_readout()
 
 func _process(_delta: float) -> void:
-	_update_movement_readout()
+	_update_hunter_readout()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
@@ -65,24 +69,28 @@ func _send_phi_ping() -> void:
 
 func _on_room_changed(room_id: String, room_title: String) -> void:
 	room_label.text = "ROOM: %s" % room_title
-	status_label.text = "CHECKPOINT: %s   |   CAMERA: %s   |   RESPAWN: ARMED" % [
+	status_label.text = "CHECKPOINT: %s   |   CAMERA: %s   |   COMBAT: ARMED" % [
 		_current_checkpoint,
 		room_id
 	]
 
 func _on_checkpoint_changed(checkpoint_id: String) -> void:
 	_current_checkpoint = checkpoint_id
-	status_label.text = "CHECKPOINT: %s   |   CAMERA: %s   |   RESPAWN: ARMED" % [
+	status_label.text = "CHECKPOINT: %s   |   CAMERA: %s   |   COMBAT: ARMED" % [
 		_current_checkpoint,
 		world.current_room_id
 	]
 
 func _on_hunter_respawned(checkpoint_id: String) -> void:
 	_current_checkpoint = checkpoint_id
-	status_label.text = "RESPAWNED: %s   |   CAMERA: %s" % [
+	status_label.text = "RESPAWNED: %s   |   CAMERA: %s   |   HP RESTORED" % [
 		_current_checkpoint,
 		world.current_room_id
 	]
+
+func _on_hunter_defeated() -> void:
+	if world != null:
+		world.respawn_hunter()
 
 func _on_receipt_appended(receipt: Dictionary) -> void:
 	_last_receipt = receipt
@@ -102,9 +110,10 @@ func _update_receipt_label() -> void:
 		_last_receipt.get("reason", "unknown")
 	]
 
-func _update_movement_readout() -> void:
+func _update_hunter_readout() -> void:
 	if hunter == null or not hunter.has_method("actor_snapshot"):
 		movement_state_label.text = "HUNTER: unavailable"
+		combat_state_label.text = "COMBAT: unavailable"
 		return
 
 	var snapshot: Dictionary = hunter.actor_snapshot()
@@ -117,4 +126,11 @@ func _update_movement_readout() -> void:
 		float(pos[1]),
 		float(vel[0]),
 		float(vel[1])
+	]
+
+	combat_state_label.text = "HP: %s/%s   COMBAT: %s   INVULN: %s" % [
+		snapshot.get("health", "?"),
+		snapshot.get("max_health", "?"),
+		snapshot.get("combat", "?"),
+		"YES" if snapshot.get("invulnerable", false) else "NO"
 	]

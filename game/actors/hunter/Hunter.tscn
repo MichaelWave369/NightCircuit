@@ -1,18 +1,46 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource path="res://game/actors/hunter/hunter.gd" type="Script" id="1_hunter"]
+[ext_resource path="res://game/combat/hurtbox.gd" type="Script" id="2_hurtbox"]
+[ext_resource path="res://game/combat/hitbox.gd" type="Script" id="3_hitbox"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape_hunter"]
 radius = 10.0
 height = 42.0
 
-[node name="Hunter" type="CharacterBody2D"]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape_hurtbox"]
+radius = 11.0
+height = 44.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape_attack"]
+size = Vector2(54, 34)
+
+[node name="Hunter" type="CharacterBody2D" groups=["hunter"]]
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_hunter")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape_hunter")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("2_hurtbox")
+team = "hunter"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("CapsuleShape_hurtbox")
+
+[node name="AttackHitbox" type="Area2D" parent="."]
+position = Vector2(34, -5)
+collision_layer = 32
+collision_mask = 16
+script = ExtResource("3_hitbox")
+team = "hunter"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackHitbox"]
+shape = SubResource("RectangleShape_attack")
 
 [node name="Sensors" type="Node2D" parent="."]
 

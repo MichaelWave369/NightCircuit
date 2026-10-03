@@ -11,6 +11,10 @@ REQUIRED = [
     "game/actors/hunter/hunter.gd",
     "game/actors/hunter/Hunter.tscn",
     "game/actors/phi_bot/phi_bot.gd",
+    "game/actors/enemies/drain_husk/drain_husk.gd",
+    "game/actors/enemies/drain_husk/DrainHusk.tscn",
+    "game/combat/hitbox.gd",
+    "game/combat/hurtbox.gd",
     "game/world/sewer_test/sewer_test_room.gd",
     "game/world/sewer_test/SewerTestRoom.tscn",
     "protocol/action_bus/action_bus.gd",
@@ -22,6 +26,7 @@ REQUIRED = [
     "docs/ARCHITECTURE.md",
     "docs/MOVEMENT.md",
     "docs/WORLD_FLOW.md",
+    "docs/COMBAT.md",
     "docs/VERTICAL_SLICE.md",
     "docs/ROADMAP.md",
 ]

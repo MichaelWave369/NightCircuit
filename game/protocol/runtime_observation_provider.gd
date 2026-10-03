@@ -52,6 +52,7 @@ func build_observation(actor_id: String) -> Dictionary:
 			"world_layer": "baseline",
 			"world_phase": _world_phase(),
 			"world_state": _world_state_snapshot(),
+			"reality_ledger": _ledger_summary(),
 			"visibility_policy": "actor_scoped"
 		}
 	}
@@ -101,6 +102,12 @@ func _world_phase() -> String:
 func _world_state_snapshot() -> Dictionary:
 	if _world != null and _world.has_method("world_state_snapshot"):
 		return _world.world_state_snapshot()
+	return {}
+
+func _ledger_summary() -> Dictionary:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger != null and ledger.has_method("public_summary"):
+		return ledger.public_summary()
 	return {}
 
 func _visible_entities(actor_id: String, actor: Node2D) -> Array:

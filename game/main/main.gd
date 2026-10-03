@@ -26,13 +26,26 @@ var _last_dialogue: Dictionary = {}
 @onready var agent_seat_state_label: Label = $HUD/MarginContainer/VBoxContainer/AgentSeatState
 @onready var dialogue_state_label: Label = $HUD/MarginContainer/VBoxContainer/DialogueState
 @onready var world_state_label: Label = $HUD/MarginContainer/VBoxContainer/WorldState
+@onready var ledger_state_label: Label = $HUD/MarginContainer/VBoxContainer/LedgerState
 
 func _ready() -> void:
-	var ledger := get_node_or_null("/root/ReceiptLedger")
-	if ledger != null:
+	var receipt_ledger := get_node_or_null("/root/ReceiptLedger")
+	if receipt_ledger != null:
 		var receipt_callback := Callable(self, "_on_receipt_appended")
-		if not ledger.is_connected("receipt_appended", receipt_callback):
-			ledger.connect("receipt_appended", receipt_callback)
+		if not receipt_ledger.is_connected("receipt_appended", receipt_callback):
+			receipt_ledger.connect("receipt_appended", receipt_callback)
+
+	var reality_ledger := get_node_or_null("/root/RealityLedger")
+	if reality_ledger != null:
+		var added_callback := Callable(self, "_on_reality_record_changed")
+		var updated_callback := Callable(self, "_on_reality_record_changed")
+		var contradiction_callback := Callable(self, "_on_contradiction_detected")
+		if not reality_ledger.is_connected("record_added", added_callback):
+			reality_ledger.connect("record_added", added_callback)
+		if not reality_ledger.is_connected("record_updated", updated_callback):
+			reality_ledger.connect("record_updated", updated_callback)
+		if not reality_ledger.is_connected("contradiction_detected", contradiction_callback):
+			reality_ledger.connect("contradiction_detected", contradiction_callback)
 
 	_connect_world(sewer_world)
 	_connect_world(ash_village)
@@ -63,7 +76,7 @@ func _ready() -> void:
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-010"}
+			"payload": {"milestone": "NC-011"}
 		})
 
 	_update_readout()
@@ -73,6 +86,7 @@ func _ready() -> void:
 	_update_agent_seat_readout()
 	_update_dialogue_readout()
 	_update_world_state_readout()
+	_update_ledger_readout()
 
 func _connect_world(target: Node) -> void:
 	if target == null:
@@ -201,6 +215,7 @@ func _on_world_exit_requested(destination: String) -> void:
 		phi_bot.reset_near_hunter()
 	_last_dialogue = {}
 	_update_dialogue_readout()
+	_record_phase_observation(previous_phase, current_phase, previous_consistency, current_consistency)
 	_update_status(str(world.get("current_room_id")))
 	_update_world_state_readout()
 
@@ -217,7 +232,39 @@ func _on_hunter_interaction_requested(_context: Dictionary) -> void:
 
 func _on_dialogue_presented(record: Dictionary) -> void:
 	_last_dialogue = record.duplicate(true)
+	_record_testimony(record)
 	_update_dialogue_readout()
+
+func _record_testimony(record: Dictionary) -> void:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger == null:
+		return
+
+	var source_id := str(record.get("npc_id", "unknown"))
+	var phase := str(record.get("phase", _active_phase()))
+	ledger.record_claim({
+		"subject": str(record.get("claim_subject", "")),
+		"value": record.get("claim_value", null),
+		"confidence": float(record.get("confidence", 0.5)),
+		"provenance": {
+			"source_kind": "npc_testimony",
+			"source_id": source_id,
+			"speaker": record.get("speaker", "unknown"),
+			"role": record.get("role", "unknown"),
+			"room": _active_room(),
+			"phase": phase
+		},
+		"data": {
+			"claim_id": record.get("claim_id", ""),
+			"text": record.get("text", ""),
+			"activity": record.get("activity", "")
+		},
+		"dedupe_key": "claim|%s|%s|%s" % [
+			record.get("claim_id", ""),
+			source_id,
+			phase
+		]
+	})
 
 func _on_phase_changed(
 	previous_phase: String,
@@ -273,6 +320,82 @@ func _update_world_state_readout() -> void:
 		geometry_revision
 	]
 
+func _record_phase_observation(
+	previous_phase: String,
+	current_phase: String,
+	previous_consistency: int,
+	current_consistency: int
+) -> void:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger == null:
+		return
+
+	var world_snapshot := {}
+	if world != null and world.has_method("world_state_snapshot"):
+		world_snapshot = world.world_state_snapshot()
+
+	ledger.record_observation({
+		"subject": "ash_village_world_state",
+		"value": current_phase,
+		"confidence": 1.0,
+		"provenance": {
+			"source_kind": "direct_world_event",
+			"source_id": "bell_event",
+			"actor": "hunter",
+			"room": _active_room(),
+			"phase": current_phase
+		},
+		"data": {
+			"previous_phase": previous_phase,
+			"current_phase": current_phase,
+			"previous_consistency": previous_consistency,
+			"current_consistency": current_consistency,
+			"world_state": world_snapshot
+		},
+		"dedupe_key": "observation|bell|%s|%s|%s" % [
+			previous_phase,
+			current_phase,
+			world_snapshot.get("geometry_revision", 0)
+		]
+	})
+
+func _on_reality_record_changed(_record: Dictionary) -> void:
+	_update_ledger_readout()
+
+func _on_contradiction_detected(record: Dictionary) -> void:
+	ledger_state_label.text = "LEDGER: CONTRADICTION // subject=%s // confidence=%.2f" % [
+		record.get("subject", "unknown"),
+		float(record.get("confidence", 0.0))
+	]
+
+func _update_ledger_readout() -> void:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger == null or not ledger.has_method("summary"):
+		ledger_state_label.text = "LEDGER: unavailable"
+		return
+
+	var snapshot: Dictionary = ledger.summary()
+	var counts: Dictionary = snapshot.get("counts", {})
+	ledger_state_label.text = "LEDGER: %s records // claims=%s evidence=%s observations=%s contradictions=%s // latest=%s:%s" % [
+		snapshot.get("record_count", 0),
+		counts.get("claim", 0),
+		counts.get("evidence", 0),
+		counts.get("observation", 0),
+		snapshot.get("contradiction_count", 0),
+		snapshot.get("latest_type", "none"),
+		snapshot.get("latest_subject", "")
+	]
+
+func _active_room() -> String:
+	if world == null:
+		return "unknown"
+	return str(world.get("current_room_id"))
+
+func _active_phase() -> String:
+	if world != null and world.has_method("world_phase"):
+		return str(world.world_phase())
+	return "unknown"
+
 func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
 	_update_agent_seat_readout()
 
@@ -321,6 +444,29 @@ func _on_hunter_defeated() -> void:
 
 func _on_phi_inspect_result(result: Dictionary) -> void:
 	_last_inspection = result.duplicate(true)
+	if str(result.get("status", "")) == "observed":
+		var ledger := get_node_or_null("/root/RealityLedger")
+		if ledger != null:
+			var object_id := str(result.get("object_id", "unknown"))
+			ledger.record_evidence({
+				"subject": object_id,
+				"value": str(result.get("category", "observation")),
+				"confidence": float(result.get("confidence", 0.5)),
+				"provenance": {
+					"source_kind": "phi_bot_inspection",
+					"source_id": "phi_bot",
+					"actor": "phi_bot",
+					"room": _active_room(),
+					"phase": _active_phase()
+				},
+				"data": {
+					"title": result.get("title", "unknown"),
+					"finding": result.get("finding", ""),
+					"category": result.get("category", "unknown"),
+					"world_position": result.get("world_position", [])
+				},
+				"dedupe_key": "evidence|%s|%s" % [object_id, _active_phase()]
+			})
 	_update_inspection_readout()
 
 func _on_receipt_appended(receipt: Dictionary) -> void:

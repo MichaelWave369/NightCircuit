@@ -2,81 +2,78 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Current milestone: NC-010 — Day / Night
+## Current milestone: NC-011 — Reality Ledger
 
-Ash Village now changes when the bell rings.
+Night Circuit now remembers what the party has actually learned.
 
-Approach the Bell Road bell and press **R**.
-
-```text
-DUSK
-  |
- BELL
-  v
-NIGHT
-  |
- BELL
-  v
- DAY
-  |
- BELL
-  v
-NIGHT ...
-```
-
-This is not merely a lighting toggle.
-
-At Night:
-
-- NPC schedules change
-- some NPCs disappear indoors while others emerge
-- testimony can change
-- Mara's shop closes
-- Drain Husks enter the village
-- Bell Road geometry changes
-- an elevated route appears while the direct path is obstructed
-- Φ-Bot detects stronger temporal resonance and a route discontinuity
-- reality consistency falls from the dusk baseline
-
-Prototype consistency values:
+The Reality Ledger is separate from the Action/Receipt Ledger:
 
 ```text
-DAY   96%
-DUSK  92%
-NIGHT 81%
+ACTION RECEIPTS
+what was proposed / authorized / executed
+
+REALITY LEDGER
+what was claimed / observed / evidenced / contradicted
 ```
 
-P3 observations expose the current phase and world-state diagnostics without bypassing scoped perception.
+### Talk to both sides of a contradiction
 
-## External Φ-Bot seat
+In Ash Village:
 
-The local P3 seat remains available at:
+```text
+Orin:
+east_bridge = destroyed
 
-`127.0.0.1:36970`
+Tamsin:
+east_bridge = present
+```
 
-An external model can therefore experience the same day/night transition through observations and legal Φ-Bot actions.
+Talk to both and the ledger derives a contradiction on `east_bridge`.
 
-## Controls
+It records disagreement. It does **not** arbitrarily choose a winner.
 
-| Input | Action |
-|---|---|
-| A / D or arrows | Move |
-| Space / W / Up | Jump / wall kick |
-| S / Down | Crouch / ledge drop |
-| J / Z | Light attack |
-| K / X | Heavy attack |
-| C / L | Dodge |
-| R | Talk / interact / ring Bell Road bell |
-| F | Φ-Bot Follow |
-| H | Φ-Bot Hold |
-| Q | Φ-Bot Light |
-| E | Φ-Bot Inspect |
-| P | Φ-Bot PING test |
-| O | P3 Φ-Bot observation |
+### Evidence
+
+Successful Φ-Bot INSPECT results become persistent evidence records.
+
+Passive anomaly sensing remains only a signal until the bot actually performs INSPECT.
+
+### World observations
+
+Bell transitions are recorded with phase, reality consistency, geometry revision, and world-state provenance.
+
+### Persistence
+
+The ledger autosaves to:
+
+`user://night_circuit_reality_ledger_v1.json`
+
+Repeated identical testimony is deduplicated and increments a repeat counter instead of manufacturing fake novelty.
+
+### P3
+
+External Φ-Bot observations now receive a compact Reality Ledger summary, including contradiction count, without dumping the full knowledge database into every model turn.
+
+## Current information loop
+
+```text
+TALK / INSPECT / WORLD EVENT
+           |
+           v
+     REALITY LEDGER
+      /     |      \
+   CLAIM  EVIDENCE OBSERVATION
+      \      |      /
+       CONTRADICTION
+            |
+        PERSISTENCE
+            |
+       P3 SUMMARY
+```
 
 ## Next rung
 
-**NC-011 — Reality Ledger:** persist claims, observations, evidence, provenance, confidence, and contradictions so noticing the wrongness becomes actual progression.
+**NC-012 — The Fallen:** the first boss encounter, including ordinary readable attacks and the first impossible attack source.
 
 ## License
 

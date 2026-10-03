@@ -39,3 +39,5 @@ jobs:
         run: python scripts/validate_nc009.py
       - name: Validate NC-010 day/night state
         run: python scripts/validate_nc010.py
+      - name: Validate NC-011 Reality Ledger
+        run: python scripts/validate_nc011.py

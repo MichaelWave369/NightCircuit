@@ -9,6 +9,7 @@ REQUIRED = [
     "game/main/main.gd",
     "game/input/human_input_adapter.gd",
     "game/protocol/runtime_observation_provider.gd",
+    "game/reality/reality_ledger.gd",
     "game/actors/hunter/hunter.gd",
     "game/actors/hunter/Hunter.tscn",
     "game/actors/phi_bot/phi_bot.gd",
@@ -47,6 +48,7 @@ REQUIRED = [
     "docs/ACTION_BUS.md",
     "docs/VERTICAL_SLICE.md",
     "docs/ROADMAP.md",
+    "docs/REALITY_LEDGER.md",
 ]
 
 missing = [path for path in REQUIRED if not (ROOT / path).is_file()]
@@ -62,6 +64,7 @@ for autoload in (
     'AuthorityGate="*res://protocol/authority/authority_gate.gd"',
     'ReceiptLedger="*res://protocol/receipts/receipt_ledger.gd"',
     'PlayerProtocol="*res://protocol/player_protocol.gd"',
+    'RealityLedger="*res://game/reality/reality_ledger.gd"',
 ):
     if autoload not in project:
         print(f"Missing autoload contract: {autoload}")

@@ -215,7 +215,6 @@ func _on_world_exit_requested(destination: String) -> void:
 		phi_bot.reset_near_hunter()
 	_last_dialogue = {}
 	_update_dialogue_readout()
-	_record_phase_observation(previous_phase, current_phase, previous_consistency, current_consistency)
 	_update_status(str(world.get("current_room_id")))
 	_update_world_state_readout()
 
@@ -287,6 +286,12 @@ func _on_phase_changed(
 		"reality_consistency": current_consistency
 	}
 	_update_dialogue_readout()
+	_record_phase_observation(
+		previous_phase,
+		current_phase,
+		previous_consistency,
+		current_consistency
+	)
 	_update_status(str(world.get("current_room_id")))
 
 func _update_world_state_readout() -> void:

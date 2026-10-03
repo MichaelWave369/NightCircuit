@@ -5,8 +5,9 @@
 - **NC-001 — COMPLETE:** agent-native Godot skeleton, authority seam, receipts
 - **NC-002 — COMPLETE:** Hunter movement controller and governed human input
 - **NC-003 — COMPLETE:** sewer traversal greybox, camera, checkpoints, room flow
-- **NC-004 — COMPLETE IN THIS CHANGE:** combat, health/damage, dodge, Drain Husk
-- **NC-005 — NEXT:** embodied Φ-Bot
+- **NC-004 — COMPLETE:** combat, health/damage, dodge, Drain Husk
+- **NC-005 — COMPLETE IN THIS CHANGE:** embodied Φ-Bot with follow, hold, light, inspect
+- **NC-006 — NEXT:** Action Bus hardening and effect receipts
 
 ## Vertical-slice ladder
 

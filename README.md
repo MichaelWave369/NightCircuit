@@ -6,70 +6,57 @@ Night Circuit combines deliberate 2D exploration, towns that change with the nig
 
 > An agent is never merely dialogue. If it inhabits the world, it can act upon the world.
 
-## Current milestone: NC-004 — Combat Foundation
+## Current milestone: NC-005 — Φ-Bot Entity
 
-NC-004 gives the Hunter a real combat loop while preserving the governed input path.
+Φ-Bot is now an embodied world actor instead of a reserved icon.
 
-The prototype now includes:
+The Broken Form supports:
 
-- light attack
-- heavy attack
-- dodge with invulnerability
-- health and damage
-- reusable hitbox / hurtbox boundaries
-- knockback and hit-stun
-- first ordinary enemy: **Drain Husk**
-- enemy windup / active / recovery attack phases
-- combat HUD state
+- **FOLLOW** — trail the Hunter with a floating offset
+- **HOLD** — stop and remain at the current position
+- **LIGHT** — project a visible local illumination field while consuming energy
+- **INSPECT** — examine the nearest inspectable world object and return a structured result
+- energy drain and recharge
+- state snapshots suitable for future observations
+- governed commands through the same Action Bus used by every other player seat
 
-The HumanInputAdapter still cannot manipulate Hunter physics or health directly.
+### Φ-Bot controls
 
-```text
-Keyboard
-   |
-HumanInputAdapter
-   |
-Action Bus
-   |
-Authority Gate
-   |
-Hunter
-   |
-Hitbox -> Hurtbox -> Damage Receiver
-```
-
-## Quick start
-
-1. Install Godot 4.x.
-2. Clone this repository.
-3. Import `project.godot`.
-4. Run the project.
-
-### Controls
-
-| Input | Action |
+| Input | Command |
 |---|---|
-| A / Left Arrow | Move left |
-| D / Right Arrow | Move right |
-| Space / W / Up Arrow | Jump / wall kick |
-| S / Down Arrow | Crouch / drop from ledge |
-| J / Z | Light attack |
-| K / X | Heavy attack |
-| C / L | Dodge |
-| P | Governed Φ-Bot PING smoke action |
+| F | Follow |
+| H | Hold |
+| Q | Toggle Light |
+| E | Inspect nearest object |
+| P | Existing governed PING smoke action |
+
+Combat and movement controls remain unchanged.
 
 ## Current route
 
-- Intake Shaft
-- Spillway
-- Cistern Approach
-- future Fallen gate
+The sewer now contains prototype inspectables, including an impossible-door trace and a Night War emergency cache marker. These are deliberately primitive evidence targets, not final art or final Reality Ledger integration.
 
-Drain Husks now occupy the sewer so movement and combat can be tested together instead of in separate laboratory terrariums like unfortunate software rodents.
+## Architecture
+
+```text
+Human command
+     |
+HumanInputAdapter
+     |
+Action Bus
+     |
+Authority Gate
+     |
+   Φ-Bot
+   / | \
+move light inspect
+```
+
+The input adapter does not hold a Φ-Bot reference and cannot directly mutate its position, energy, light state, or inspection results.
 
 ## Next rung
 
-**NC-005 — Φ-Bot Entity:** make Φ-Bot a real embodied actor with Follow, Hold, Light, and Inspect.
+**NC-006 — Action Bus Hardening:** typed action contracts, actor execution results, effect receipts, and replay-oriented semantics.
 
 ## License
 

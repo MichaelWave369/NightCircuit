@@ -4,21 +4,39 @@
 
 Night Circuit combines deliberate 2D exploration, towns that change with the night cycle, hidden routes, evidence-driven mysteries, and a physical AI companion called **Φ-Bot**.
 
-The defining rule is simple:
-
 > An agent is never merely dialogue. If it inhabits the world, it can act upon the world.
 
-## Current milestone: NC-003 — Sewer Test Room
+## Current milestone: NC-004 — Combat Foundation
 
-NC-003 replaces the one-screen movement lab with the first traversable world slice: a three-room sewer greybox with camera bounds, checkpoints, hazards, and room flow.
+NC-004 gives the Hunter a real combat loop while preserving the governed input path.
 
-The Hunter now moves through:
+The prototype now includes:
 
-1. **INTAKE SHAFT** — basic run/jump gap
-2. **SPILLWAY** — wall-kick and vertical traversal
-3. **CISTERN APPROACH** — ledges leading toward the future Fallen arena
+- light attack
+- heavy attack
+- dodge with invulnerability
+- health and damage
+- reusable hitbox / hurtbox boundaries
+- knockback and hit-stun
+- first ordinary enemy: **Drain Husk**
+- enemy windup / active / recovery attack phases
+- combat HUD state
 
-Checkpoints are session-local on purpose. Save persistence belongs later.
+The HumanInputAdapter still cannot manipulate Hunter physics or health directly.
+
+```text
+Keyboard
+   |
+HumanInputAdapter
+   |
+Action Bus
+   |
+Authority Gate
+   |
+Hunter
+   |
+Hitbox -> Hurtbox -> Damage Receiver
+```
 
 ## Quick start
 
@@ -35,29 +53,23 @@ Checkpoints are session-local on purpose. Save persistence belongs later.
 | D / Right Arrow | Move right |
 | Space / W / Up Arrow | Jump / wall kick |
 | S / Down Arrow | Crouch / drop from ledge |
+| J / Z | Light attack |
+| K / X | Heavy attack |
+| C / L | Dodge |
 | P | Governed Φ-Bot PING smoke action |
 
-## Architecture
+## Current route
 
-Human input still does not write directly to Hunter velocity.
+- Intake Shaft
+- Spillway
+- Cistern Approach
+- future Fallen gate
 
-```text
-Input adapter
-    ↓
-Action Bus
-    ↓
-Authority Gate
-    ↓
-Hunter
-    ↓
-World traversal
-```
+Drain Husks now occupy the sewer so movement and combat can be tested together instead of in separate laboratory terrariums like unfortunate software rodents.
 
-The world may respawn or constrain the Hunter, but it does not bypass the action contract for ordinary player movement.
+## Next rung
 
-## Roadmap
-
-NC-004 is combat: light attack, heavy attack, dodge, damage, health, and a simple enemy family.
+**NC-005 — Φ-Bot Entity:** make Φ-Bot a real embodied actor with Follow, Hold, Light, and Inspect.
 
 ## License
 

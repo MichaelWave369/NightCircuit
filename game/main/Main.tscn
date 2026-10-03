@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource path="res://game/main/main.gd" type="Script" id="1_main"]
 [ext_resource path="res://game/actors/hunter/Hunter.tscn" type="PackedScene" id="2_hunter"]
 [ext_resource path="res://game/input/human_input_adapter.gd" type="Script" id="3_input"]
 [ext_resource path="res://game/world/sewer_test/SewerTestRoom.tscn" type="PackedScene" id="4_world"]
+[ext_resource path="res://game/actors/enemies/drain_husk/DrainHusk.tscn" type="PackedScene" id="5_husk"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -13,6 +14,14 @@ script = ExtResource("1_main")
 [node name="Hunter" parent="." instance=ExtResource("2_hunter")]
 position = Vector2(180, 570)
 
+[node name="DrainHuskA" parent="." instance=ExtResource("5_husk")]
+position = Vector2(1110, 575)
+enemy_id = "drain_husk_a"
+
+[node name="DrainHuskB" parent="." instance=ExtResource("5_husk")]
+position = Vector2(2350, 340)
+enemy_id = "drain_husk_b"
+
 [node name="HumanInputAdapter" type="Node" parent="."]
 script = ExtResource("3_input")
 
@@ -21,8 +30,8 @@ script = ExtResource("3_input")
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
 offset_left = 30.0
 offset_top = 24.0
-offset_right = 1100.0
-offset_bottom = 286.0
+offset_right = 1140.0
+offset_bottom = 320.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
@@ -39,7 +48,7 @@ text = "Φ: NIGHT CIRCUIT"
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
 theme_override_font_sizes/font_size = 17
-text = "NC-003 // SEWER TEST ROOM"
+text = "NC-004 // COMBAT FOUNDATION"
 
 [node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
@@ -48,15 +57,19 @@ text = "ROOM: INTAKE SHAFT"
 
 [node name="Status" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.66, 0.86, 0.75, 1)
-text = "CHECKPOINT: drain_entry   |   CAMERA: ROOM-BOUNDED   |   RESPAWN: ARMED"
+text = "CHECKPOINT: drain_entry   |   CAMERA: ROOM-BOUNDED   |   COMBAT: ARMED"
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "Traverse right. Reach each beacon. Falling into the drainage returns you to the latest checkpoint."
+text = "J/Z light   K/X heavy   C/L dodge   |   Drain Husk attacks telegraph before becoming active."
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
 text = "HUNTER: booting"
+
+[node name="CombatState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.91, 0.69, 0.52, 1)
+text = "HP: 100/100   COMBAT: READY"
 
 [node name="ReceiptLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.94, 0.82, 0.56, 1)

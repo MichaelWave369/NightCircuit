@@ -12,6 +12,7 @@ const INPUT_CROUCH := "nc_crouch"
 const INPUT_LIGHT_ATTACK := "nc_light_attack"
 const INPUT_HEAVY_ATTACK := "nc_heavy_attack"
 const INPUT_DODGE := "nc_dodge"
+const INPUT_INTERACT := "nc_interact"
 
 const INPUT_PHI_FOLLOW := "nc_phi_follow"
 const INPUT_PHI_HOLD := "nc_phi_hold"
@@ -37,6 +38,9 @@ func _physics_process(_delta: float) -> void:
 
 	if Input.is_action_just_pressed(INPUT_DODGE):
 		_submit(actor_id, "DODGE", {})
+
+	if Input.is_action_just_pressed(INPUT_INTERACT):
+		_submit(actor_id, "INTERACT", {})
 
 	if Input.is_action_just_pressed(INPUT_PHI_FOLLOW):
 		_submit(phi_actor_id, "FOLLOW", {})
@@ -90,6 +94,7 @@ func _ensure_keyboard_actions() -> void:
 	_ensure_key_action(INPUT_LIGHT_ATTACK, [KEY_J, KEY_Z])
 	_ensure_key_action(INPUT_HEAVY_ATTACK, [KEY_K, KEY_X])
 	_ensure_key_action(INPUT_DODGE, [KEY_C, KEY_L])
+	_ensure_key_action(INPUT_INTERACT, [KEY_R])
 
 	_ensure_key_action(INPUT_PHI_FOLLOW, [KEY_F])
 	_ensure_key_action(INPUT_PHI_HOLD, [KEY_H])

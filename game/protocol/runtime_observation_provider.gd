@@ -16,6 +16,9 @@ func bind(world: Node, hunter: Node2D, phi_bot: Node2D) -> void:
 	_phi_bot = phi_bot
 	_register()
 
+func set_world(world: Node) -> void:
+	_world = world
+
 func _exit_tree() -> void:
 	var protocol := get_node_or_null("/root/PlayerProtocol")
 	if protocol == null:
@@ -47,6 +50,7 @@ func build_observation(actor_id: String) -> Dictionary:
 			"scope": actor_id,
 			"checkpoint": _checkpoint_id(),
 			"world_layer": "baseline",
+			"world_phase": _world_phase(),
 			"visibility_policy": "actor_scoped"
 		}
 	}
@@ -88,6 +92,11 @@ func _checkpoint_id() -> String:
 		return str(_world.get("active_checkpoint_id"))
 	return "unknown"
 
+func _world_phase() -> String:
+	if _world != null and _world.has_method("world_phase"):
+		return str(_world.world_phase())
+	return "unknown"
+
 func _visible_entities(actor_id: String, actor: Node2D) -> Array:
 	var result: Array = []
 	var max_range := HUNTER_VISIBLE_RANGE if actor_id == "hunter" else PHI_VISIBLE_RANGE
@@ -111,6 +120,10 @@ func _visible_entities(actor_id: String, actor: Node2D) -> Array:
 			continue
 		result.append(_entity_record(enemy_node, "enemy", distance))
 
+	if _world != null and _world.has_method("protocol_entities"):
+		for world_entity in _world.protocol_entities(actor.global_position, max_range):
+			result.append(world_entity)
+
 	return result
 
 func _signals(actor_id: String, actor: Node2D) -> Dictionary:
@@ -118,11 +131,18 @@ func _signals(actor_id: String, actor: Node2D) -> Dictionary:
 		return {}
 
 	var result := {}
+	if _world != null and _world.has_method("protocol_signals"):
+		var world_signals: Dictionary = _world.protocol_signals(actor.global_position, PHI_SIGNAL_RANGE)
+		for signal_id in world_signals:
+			result[signal_id] = world_signals[signal_id]
+
 	for candidate in get_tree().get_nodes_in_group("inspectable"):
 		if not (candidate is Node2D):
 			continue
 
 		var node := candidate as Node2D
+		if not node.is_visible_in_tree():
+			continue
 		var distance := actor.global_position.distance_to(node.global_position)
 		if distance > PHI_SIGNAL_RANGE:
 			continue

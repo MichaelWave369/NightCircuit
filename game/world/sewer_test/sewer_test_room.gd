@@ -4,6 +4,7 @@ class_name NightCircuitSewerTestRoom
 signal room_changed(room_id: String, room_title: String)
 signal checkpoint_changed(checkpoint_id: String)
 signal hunter_respawned(checkpoint_id: String)
+signal exit_requested(destination: String)
 
 const WORLD_SIZE := Vector2(3840.0, 720.0)
 const KILL_Y := 820.0
@@ -76,26 +77,63 @@ var active_checkpoint_id := "drain_entry"
 var active_checkpoint_position := Vector2(180.0, 570.0)
 var current_room_id := ""
 var _checkpoint_areas: Array[Area2D] = []
+var _active := true
+var _exit_latched := false
 
 func _ready() -> void:
 	_build_geometry()
 	_build_room_triggers()
 	_build_checkpoints()
+	_build_world_exit()
 	queue_redraw()
 
 func bind_hunter(target: Node2D) -> void:
 	hunter = target
+	_active = true
+	_exit_latched = false
 	activate_checkpoint("drain_entry", true)
 	_enter_room(ROOMS[0])
 	if hunter != null and hunter.has_method("force_respawn"):
 		hunter.force_respawn(active_checkpoint_position)
 
 func _physics_process(_delta: float) -> void:
-	if hunter == null:
+	if not _active or hunter == null:
 		return
 
 	if hunter.global_position.y > KILL_Y:
 		respawn_hunter()
+
+
+func set_active(enabled: bool) -> void:
+	_active = enabled
+	if enabled:
+		_exit_latched = false
+
+func enter_from_village(target: Node2D) -> void:
+	hunter = target
+	_active = true
+	_exit_latched = false
+	activate_checkpoint("cistern_gate", true)
+	_enter_room(ROOMS[2])
+	if hunter != null and hunter.has_method("force_respawn"):
+		hunter.force_respawn(Vector2(3480.0, 570.0))
+
+func world_phase() -> String:
+	return "DRAIN"
+
+func _build_world_exit() -> void:
+	var area := _make_area(
+		"AshVillageLift",
+		Rect2(3500.0, 470.0, 220.0, 170.0),
+		4
+	)
+	area.body_entered.connect(_on_world_exit_body_entered)
+
+func _on_world_exit_body_entered(body: Node) -> void:
+	if not _active or body != hunter or _exit_latched:
+		return
+	_exit_latched = true
+	exit_requested.emit("ash_village")
 
 func activate_checkpoint(checkpoint_id: String, silent: bool = false) -> void:
 	for checkpoint in CHECKPOINTS:
@@ -244,4 +282,5 @@ func _draw() -> void:
 
 	# Future boss boundary.
 	draw_line(Vector2(3810.0, 140.0), Vector2(3810.0, 620.0), Color(0.55, 0.20, 0.22, 0.8), 6.0)
+	draw_string(ThemeDB.fallback_font, Vector2(3450.0, 190.0), "LIFT // ASH VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, Color(0.46, 0.72, 0.76, 0.9))
 	draw_string(ThemeDB.fallback_font, Vector2(3585.0, 125.0), "THE FALLEN // LOCKED UNTIL NC-012", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 15, Color(0.68, 0.37, 0.39, 0.9))

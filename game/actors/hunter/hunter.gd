@@ -5,6 +5,7 @@ signal locomotion_state_changed(previous_state: String, current_state: String)
 signal movement_event(event_name: String, detail: Dictionary)
 signal health_changed(current_health: int, max_health: int)
 signal defeated
+signal interaction_requested(context: Dictionary)
 
 enum LocomotionState {
 	IDLE,
@@ -151,7 +152,15 @@ func execute_action(action: Dictionary) -> Dictionary:
 		"LEDGE_GRAB", "WALL_KICK":
 			return _effect("refused", "derived_movement_event_not_command")
 		"INTERACT":
-			return _effect("refused", "interact_not_implemented")
+			if _combat_state == CombatState.DEAD or _combat_state == CombatState.HURT:
+				return _effect("refused", "interaction_unavailable")
+			var context := {
+				"position": [global_position.x, global_position.y],
+				"facing": _facing,
+				"source": control_source
+			}
+			interaction_requested.emit(context)
+			return _effect("applied", "interaction_requested", context)
 		_:
 			return _effect("refused", "action_not_implemented")
 
@@ -633,7 +642,7 @@ func protocol_capabilities() -> Dictionary:
 		"LIGHT_ATTACK": {"available": _can_start_attack()},
 		"HEAVY_ATTACK": {"available": _can_start_attack()},
 		"DODGE": {"available": _can_start_dodge()},
-		"INTERACT": {"available": false, "reason": "not_implemented"},
+		"INTERACT": {"available": alive and _combat_state != CombatState.HURT},
 		"LEDGE_GRAB": {"available": false, "reason": "derived_world_event"},
 		"WALL_KICK": {"available": false, "reason": "derived_world_event"}
 	}

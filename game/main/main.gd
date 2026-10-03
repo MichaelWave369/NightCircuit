@@ -1,12 +1,15 @@
 extends Node2D
 
+var world: Node = null
 var _current_checkpoint := "drain_entry"
 var _last_inspection: Dictionary = {}
 var _last_decision: Dictionary = {}
 var _last_effect: Dictionary = {}
 var _protocol_observe_count := 0
+var _last_dialogue: Dictionary = {}
 
-@onready var world = $SewerTestRoom
+@onready var sewer_world = $SewerTestRoom
+@onready var ash_village = $AshVillage
 @onready var hunter = $Hunter
 @onready var phi_bot = $PhiBot
 @onready var runtime_observation_provider = $RuntimeObservationProvider
@@ -21,6 +24,7 @@ var _protocol_observe_count := 0
 @onready var replay_state_label: Label = $HUD/MarginContainer/VBoxContainer/ReplayState
 @onready var protocol_state_label: Label = $HUD/MarginContainer/VBoxContainer/ProtocolState
 @onready var agent_seat_state_label: Label = $HUD/MarginContainer/VBoxContainer/AgentSeatState
+@onready var dialogue_state_label: Label = $HUD/MarginContainer/VBoxContainer/DialogueState
 
 func _ready() -> void:
 	var ledger := get_node_or_null("/root/ReceiptLedger")
@@ -29,14 +33,17 @@ func _ready() -> void:
 		if not ledger.is_connected("receipt_appended", receipt_callback):
 			ledger.connect("receipt_appended", receipt_callback)
 
-	if world != null:
-		world.room_changed.connect(_on_room_changed)
-		world.checkpoint_changed.connect(_on_checkpoint_changed)
-		world.hunter_respawned.connect(_on_hunter_respawned)
-		world.bind_hunter(hunter)
+	_connect_world(sewer_world)
+	_connect_world(ash_village)
+
+	world = sewer_world
+	sewer_world.set_active(true)
+	ash_village.set_active(false)
+	sewer_world.bind_hunter(hunter)
 
 	if hunter != null:
 		hunter.defeated.connect(_on_hunter_defeated)
+		hunter.interaction_requested.connect(_on_hunter_interaction_requested)
 
 	if phi_bot != null:
 		phi_bot.bind_hunter(hunter)
@@ -55,7 +62,7 @@ func _ready() -> void:
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-008"}
+			"payload": {"milestone": "NC-009"}
 		})
 
 	_update_readout()
@@ -63,6 +70,22 @@ func _ready() -> void:
 	_update_replay_readout()
 	_update_protocol_description()
 	_update_agent_seat_readout()
+	_update_dialogue_readout()
+
+func _connect_world(target: Node) -> void:
+	if target == null:
+		return
+
+	if target.has_signal("room_changed"):
+		target.room_changed.connect(_on_room_changed)
+	if target.has_signal("checkpoint_changed"):
+		target.checkpoint_changed.connect(_on_checkpoint_changed)
+	if target.has_signal("hunter_respawned"):
+		target.hunter_respawned.connect(_on_hunter_respawned)
+	if target.has_signal("exit_requested"):
+		target.exit_requested.connect(_on_world_exit_requested)
+	if target.has_signal("dialogue_presented"):
+		target.dialogue_presented.connect(_on_dialogue_presented)
 
 func _process(_delta: float) -> void:
 	_update_readout()
@@ -84,14 +107,14 @@ func _send_phi_ping() -> void:
 
 	var room_id := "unknown"
 	if world != null:
-		room_id = world.current_room_id
+		room_id = str(world.get("current_room_id"))
 
 	bus.submit({
 		"source": "human",
 		"actor": "phi_bot",
 		"action": "PING",
 		"payload": {
-			"target": "sewer_test_anchor",
+			"target": "world_anchor",
 			"room": room_id
 		}
 	})
@@ -120,13 +143,14 @@ func _request_phi_observation() -> void:
 	var observation: Dictionary = body.get("observation", {})
 	var visible: Array = observation.get("visible_entities", [])
 	var signals: Dictionary = observation.get("signals", {})
+	var metadata: Dictionary = observation.get("metadata", {})
 
-	protocol_state_label.text = "P3 %s // room=%s visible=%d signals=%d scope=%s" % [
+	protocol_state_label.text = "P3 %s // room=%s visible=%d signals=%d phase=%s" % [
 		observation.get("observation_id", "?"),
 		observation.get("room", "?"),
 		visible.size(),
 		signals.size(),
-		observation.get("actor", "?")
+		metadata.get("world_phase", "?")
 	]
 
 func _update_protocol_description() -> void:
@@ -148,6 +172,46 @@ func _update_protocol_description() -> void:
 			body.get("version", "?"),
 			",".join(body.get("observable_actors", []))
 		]
+
+func _on_world_exit_requested(destination: String) -> void:
+	match destination:
+		"ash_village":
+			sewer_world.set_active(false)
+			ash_village.set_active(true)
+			world = ash_village
+			ash_village.bind_hunter(hunter)
+			_current_checkpoint = str(ash_village.get("active_checkpoint_id"))
+		"sewer":
+			ash_village.set_active(false)
+			sewer_world.set_active(true)
+			world = sewer_world
+			sewer_world.enter_from_village(hunter)
+			_current_checkpoint = str(sewer_world.get("active_checkpoint_id"))
+		_:
+			return
+
+	if runtime_observation_provider != null:
+		runtime_observation_provider.set_world(world)
+	if phi_bot != null:
+		phi_bot.reset_near_hunter()
+	_last_dialogue = {}
+	_update_dialogue_readout()
+	_update_status(str(world.get("current_room_id")))
+
+func _on_hunter_interaction_requested(_context: Dictionary) -> void:
+	if world == null or not world.has_method("interact_nearest"):
+		_last_dialogue = {"status": "no_target"}
+		_update_dialogue_readout()
+		return
+
+	var result: Dictionary = world.interact_nearest(hunter)
+	if str(result.get("status", "")) != "observed":
+		_last_dialogue = result
+		_update_dialogue_readout()
+
+func _on_dialogue_presented(record: Dictionary) -> void:
+	_last_dialogue = record.duplicate(true)
+	_update_dialogue_readout()
 
 func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
 	_update_agent_seat_readout()
@@ -171,21 +235,28 @@ func _update_agent_seat_readout() -> void:
 	]
 
 func _on_room_changed(room_id: String, room_title: String) -> void:
+	if world == null:
+		return
+	if room_id != str(world.get("current_room_id")):
+		return
 	room_label.text = "ROOM: %s" % room_title
 	_update_status(room_id)
 
 func _on_checkpoint_changed(checkpoint_id: String) -> void:
+	if world == null:
+		return
 	_current_checkpoint = checkpoint_id
-	_update_status(world.current_room_id)
+	_update_status(str(world.get("current_room_id")))
 
 func _on_hunter_respawned(checkpoint_id: String) -> void:
 	_current_checkpoint = checkpoint_id
 	if phi_bot != null and phi_bot.has_method("reset_near_hunter"):
 		phi_bot.reset_near_hunter()
-	_update_status(world.current_room_id)
+	if world != null:
+		_update_status(str(world.get("current_room_id")))
 
 func _on_hunter_defeated() -> void:
-	if world != null:
+	if world != null and world.has_method("respawn_hunter"):
 		world.respawn_hunter()
 
 func _on_phi_inspect_result(result: Dictionary) -> void:
@@ -206,14 +277,18 @@ func _on_receipt_appended(receipt: Dictionary) -> void:
 func _update_status(room_id: String) -> void:
 	var mode := "?"
 	var form := "?"
+	var phase := "?"
 	if phi_bot != null and phi_bot.has_method("actor_snapshot"):
 		var snapshot: Dictionary = phi_bot.actor_snapshot()
 		mode = str(snapshot.get("mode", "?"))
 		form = str(snapshot.get("form", "?"))
+	if world != null and world.has_method("world_phase"):
+		phase = str(world.world_phase())
 
-	status_label.text = "CHECKPOINT: %s   |   CAMERA: %s   |   Φ-BOT: %s / %s   |   EFFECT RECEIPTS: ARMED" % [
+	status_label.text = "CHECKPOINT: %s   |   ROOM: %s   |   PHASE: %s   |   Φ-BOT: %s / %s" % [
 		_current_checkpoint,
 		room_id,
+		phase,
 		mode,
 		form
 	]
@@ -322,3 +397,19 @@ func _update_inspection_readout() -> void:
 		]
 	else:
 		inspection_state_label.text = "INSPECT: %s" % status
+
+func _update_dialogue_readout() -> void:
+	if _last_dialogue.is_empty():
+		dialogue_state_label.text = "DIALOGUE: no testimony"
+		return
+
+	if str(_last_dialogue.get("status", "")) != "observed":
+		dialogue_state_label.text = "DIALOGUE: no one nearby"
+		return
+
+	dialogue_state_label.text = "%s [%s]: %s // claim=%s" % [
+		_last_dialogue.get("speaker", "?"),
+		_last_dialogue.get("activity", "?"),
+		_last_dialogue.get("text", "..."),
+		_last_dialogue.get("claim_id", "none")
+	]

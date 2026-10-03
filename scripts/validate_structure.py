@@ -28,9 +28,13 @@ REQUIRED = [
     "protocol/observations/observation.gd",
     "protocol/player_protocol.gd",
     "protocol/receipts/receipt_ledger.gd",
+    "protocol/transports/local_agent_server.gd",
+    "tools/p3_client.py",
+    "tools/p3_ollama_agent.py",
     "docs/GAME_DESIGN.md",
     "docs/PLAYER_PROTOCOL.md",
     "docs/ADAPTERS.md",
+    "docs/AGENT_SEAT.md",
     "docs/ARCHITECTURE.md",
     "docs/MOVEMENT.md",
     "docs/WORLD_FLOW.md",
@@ -64,7 +68,6 @@ if "CAPABILITY != AUTHORITY" not in authority:
     print("Authority invariant marker missing.")
     sys.exit(1)
 
-# Protect the public P3 contract itself, not incidental markdown formatting.
 protocol = (ROOT / "docs/PLAYER_PROTOCOL.md").read_text(encoding="utf-8")
 for marker in (
     "phi-player-protocol/message/0.3",

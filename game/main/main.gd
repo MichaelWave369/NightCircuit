@@ -10,6 +10,7 @@ var _protocol_observe_count := 0
 @onready var hunter = $Hunter
 @onready var phi_bot = $PhiBot
 @onready var runtime_observation_provider = $RuntimeObservationProvider
+@onready var local_agent_server = $LocalAgentServer
 @onready var room_label: Label = $HUD/MarginContainer/VBoxContainer/RoomLabel
 @onready var status_label: Label = $HUD/MarginContainer/VBoxContainer/Status
 @onready var movement_state_label: Label = $HUD/MarginContainer/VBoxContainer/MovementState
@@ -19,6 +20,7 @@ var _protocol_observe_count := 0
 @onready var receipt_label: Label = $HUD/MarginContainer/VBoxContainer/ReceiptLabel
 @onready var replay_state_label: Label = $HUD/MarginContainer/VBoxContainer/ReplayState
 @onready var protocol_state_label: Label = $HUD/MarginContainer/VBoxContainer/ProtocolState
+@onready var agent_seat_state_label: Label = $HUD/MarginContainer/VBoxContainer/AgentSeatState
 
 func _ready() -> void:
 	var ledger := get_node_or_null("/root/ReceiptLedger")
@@ -43,19 +45,24 @@ func _ready() -> void:
 	if runtime_observation_provider != null:
 		runtime_observation_provider.bind(world, hunter, phi_bot)
 
+	if local_agent_server != null:
+		local_agent_server.server_state_changed.connect(_on_agent_server_state_changed)
+		local_agent_server.message_processed.connect(_on_agent_message_processed)
+
 	var bus := get_node_or_null("/root/ActionBus")
 	if bus != null:
 		bus.submit({
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-007"}
+			"payload": {"milestone": "NC-008"}
 		})
 
 	_update_readout()
 	_update_receipt_readout()
 	_update_replay_readout()
 	_update_protocol_description()
+	_update_agent_seat_readout()
 
 func _process(_delta: float) -> void:
 	_update_readout()
@@ -141,6 +148,27 @@ func _update_protocol_description() -> void:
 			body.get("version", "?"),
 			",".join(body.get("observable_actors", []))
 		]
+
+func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
+	_update_agent_seat_readout()
+
+func _on_agent_message_processed(_summary: Dictionary) -> void:
+	_update_agent_seat_readout()
+
+func _update_agent_seat_readout() -> void:
+	if local_agent_server == null or not local_agent_server.has_method("server_snapshot"):
+		agent_seat_state_label.text = "AGENT SEAT: unavailable"
+		return
+
+	var snapshot: Dictionary = local_agent_server.server_snapshot()
+	agent_seat_state_label.text = "AGENT SEAT: %s // %s:%s // actor=%s // clients=%s // last=%s" % [
+		str(snapshot.get("state", "?")).to_upper(),
+		snapshot.get("bind", "?"),
+		snapshot.get("port", "?"),
+		snapshot.get("seat_actor", "?"),
+		snapshot.get("clients", 0),
+		snapshot.get("last_message", "idle")
+	]
 
 func _on_room_changed(room_id: String, room_title: String) -> void:
 	room_label.text = "ROOM: %s" % room_title

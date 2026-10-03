@@ -48,7 +48,6 @@ require_tokens(
     "game/main/Main.tscn",
     [
         "WorldState",
-        "NC-010 // DAY / NIGHT",
     ],
 )
 

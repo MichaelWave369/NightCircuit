@@ -7,9 +7,11 @@ var _last_decision: Dictionary = {}
 var _last_effect: Dictionary = {}
 var _protocol_observe_count := 0
 var _last_dialogue: Dictionary = {}
+var _boss_warning_timer := 0.0
 
 @onready var sewer_world = $SewerTestRoom
 @onready var ash_village = $AshVillage
+@onready var fallen_arena = $FallenArena
 @onready var hunter = $Hunter
 @onready var phi_bot = $PhiBot
 @onready var runtime_observation_provider = $RuntimeObservationProvider
@@ -27,6 +29,7 @@ var _last_dialogue: Dictionary = {}
 @onready var dialogue_state_label: Label = $HUD/MarginContainer/VBoxContainer/DialogueState
 @onready var world_state_label: Label = $HUD/MarginContainer/VBoxContainer/WorldState
 @onready var ledger_state_label: Label = $HUD/MarginContainer/VBoxContainer/LedgerState
+@onready var boss_state_label: Label = $HUD/MarginContainer/VBoxContainer/BossState
 
 func _ready() -> void:
 	var receipt_ledger := get_node_or_null("/root/ReceiptLedger")
@@ -49,10 +52,12 @@ func _ready() -> void:
 
 	_connect_world(sewer_world)
 	_connect_world(ash_village)
+	_connect_world(fallen_arena)
 
 	world = sewer_world
 	sewer_world.set_active(true)
 	ash_village.set_active(false)
+	fallen_arena.set_active(false)
 	sewer_world.bind_hunter(hunter)
 
 	if hunter != null:
@@ -76,7 +81,7 @@ func _ready() -> void:
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-011"}
+			"payload": {"milestone": "NC-012"}
 		})
 
 	_update_readout()
@@ -87,6 +92,7 @@ func _ready() -> void:
 	_update_dialogue_readout()
 	_update_world_state_readout()
 	_update_ledger_readout()
+	_update_boss_readout()
 
 func _connect_world(target: Node) -> void:
 	if target == null:
@@ -104,10 +110,18 @@ func _connect_world(target: Node) -> void:
 		target.dialogue_presented.connect(_on_dialogue_presented)
 	if target.has_signal("phase_changed"):
 		target.phase_changed.connect(_on_phase_changed)
+	if target.has_signal("boss_state_changed"):
+		target.boss_state_changed.connect(_on_boss_state_changed)
+	if target.has_signal("boss_anomaly"):
+		target.boss_anomaly.connect(_on_boss_anomaly)
+	if target.has_signal("boss_defeated"):
+		target.boss_defeated.connect(_on_boss_defeated)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_boss_warning_timer = maxf(0.0, _boss_warning_timer - delta)
 	_update_readout()
 	_update_world_state_readout()
+	_update_boss_readout()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
@@ -196,15 +210,31 @@ func _on_world_exit_requested(destination: String) -> void:
 	match destination:
 		"ash_village":
 			sewer_world.set_active(false)
+			fallen_arena.set_active(false)
 			ash_village.set_active(true)
 			world = ash_village
 			ash_village.bind_hunter(hunter)
 			_current_checkpoint = str(ash_village.get("active_checkpoint_id"))
 		"sewer":
 			ash_village.set_active(false)
+			fallen_arena.set_active(false)
 			sewer_world.set_active(true)
 			world = sewer_world
 			sewer_world.enter_from_village(hunter)
+			_current_checkpoint = str(sewer_world.get("active_checkpoint_id"))
+		"fallen_arena":
+			ash_village.set_active(false)
+			sewer_world.set_active(false)
+			fallen_arena.set_active(true)
+			world = fallen_arena
+			fallen_arena.bind_hunter(hunter)
+			_current_checkpoint = str(fallen_arena.get("active_checkpoint_id"))
+		"sewer_from_fallen":
+			ash_village.set_active(false)
+			fallen_arena.set_active(false)
+			sewer_world.set_active(true)
+			world = sewer_world
+			sewer_world.enter_from_boss(hunter)
 			_current_checkpoint = str(sewer_world.get("active_checkpoint_id"))
 		_:
 			return
@@ -217,6 +247,7 @@ func _on_world_exit_requested(destination: String) -> void:
 	_update_dialogue_readout()
 	_update_status(str(world.get("current_room_id")))
 	_update_world_state_readout()
+	_update_boss_readout()
 
 func _on_hunter_interaction_requested(_context: Dictionary) -> void:
 	if world == null or not world.has_method("interact_nearest"):
@@ -308,6 +339,13 @@ func _update_world_state_readout() -> void:
 	if world.has_method("world_state_snapshot"):
 		var snapshot: Dictionary = world.world_state_snapshot()
 		phase = str(snapshot.get("phase", "?"))
+		if not snapshot.has("reality_consistency"):
+			world_state_label.text = "WORLD: %s // REWARD %s // BOSS ARENA %s" % [
+				phase,
+				snapshot.get("reward_state", "N/A"),
+				"COMPLETE" if snapshot.get("boss_defeated", false) else "ACTIVE"
+			]
+			return
 		consistency = int(snapshot.get("reality_consistency", -1))
 		shop = str(snapshot.get("shop_state", "?"))
 		geometry_revision = int(snapshot.get("geometry_revision", 0))
@@ -400,6 +438,79 @@ func _active_phase() -> String:
 	if world != null and world.has_method("world_phase"):
 		return str(world.world_phase())
 	return "unknown"
+
+func _on_boss_state_changed(snapshot: Dictionary) -> void:
+	_update_boss_readout(snapshot)
+
+func _on_boss_anomaly(event: Dictionary) -> void:
+	_boss_warning_timer = 1.1
+	boss_state_label.text = "Φ-BOT WARNING // ATTACK DETECTED: NO PHYSICAL SOURCE // %s" % event.get("attack", "?")
+
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger != null:
+		ledger.record_observation({
+			"subject": "the_fallen_attack_source",
+			"value": "no_physical_source",
+			"confidence": float(event.get("confidence", 0.99)),
+			"provenance": {
+				"source_kind": "phi_bot_combat_warning",
+				"source_id": "phi_bot",
+				"actor": "phi_bot",
+				"room": _active_room(),
+				"phase": _active_phase()
+			},
+			"data": event.duplicate(true),
+			"dedupe_key": "observation|the_fallen|no_physical_source"
+		})
+
+func _on_boss_defeated(snapshot: Dictionary) -> void:
+	boss_state_label.text = "THE FALLEN // DEFEATED // SCOUT CORE DETECTED"
+
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger != null:
+		ledger.record_evidence({
+			"subject": "the_fallen",
+			"value": "defeated",
+			"confidence": 1.0,
+			"provenance": {
+				"source_kind": "direct_combat_result",
+				"source_id": "hunter",
+				"actor": "hunter",
+				"room": _active_room(),
+				"phase": _active_phase()
+			},
+			"data": snapshot.duplicate(true),
+			"dedupe_key": "evidence|the_fallen|defeated"
+		})
+
+func _update_boss_readout(snapshot: Dictionary = {}) -> void:
+	if world == fallen_arena and _boss_warning_timer > 0.0:
+		return
+
+	if world != fallen_arena:
+		boss_state_label.text = "BOSS: not engaged"
+		return
+
+	var boss_snapshot := snapshot
+	if boss_snapshot.is_empty() and fallen_arena != null and fallen_arena.has_method("world_state_snapshot"):
+		var arena_state: Dictionary = fallen_arena.world_state_snapshot()
+		boss_snapshot = arena_state.get("boss", {})
+
+	if boss_snapshot.is_empty():
+		boss_state_label.text = "THE FALLEN: state unavailable"
+		return
+
+	if bool(boss_snapshot.get("defeated", false)):
+		boss_state_label.text = "THE FALLEN // DEFEATED // SCOUT CORE UNCLAIMED"
+		return
+
+	boss_state_label.text = "THE FALLEN // HP %s/%s // PHASE %s // %s // ATTACK %s" % [
+		boss_snapshot.get("health", "?"),
+		boss_snapshot.get("max_health", "?"),
+		boss_snapshot.get("boss_phase", "?"),
+		boss_snapshot.get("combat", "?"),
+		boss_snapshot.get("attack", "none")
+	]
 
 func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
 	_update_agent_seat_readout()
@@ -616,10 +727,17 @@ func _update_dialogue_readout() -> void:
 
 	var status := str(_last_dialogue.get("status", ""))
 	if status == "world_event":
-		dialogue_state_label.text = "WORLD EVENT: BELL // phase=%s // reality=%s%%" % [
-			_last_dialogue.get("phase", "?"),
-			_last_dialogue.get("reality_consistency", "?")
-		]
+		var event_name := str(_last_dialogue.get("event", "event")).to_upper()
+		if event_name == "BELL":
+			dialogue_state_label.text = "WORLD EVENT: BELL // phase=%s // reality=%s%%" % [
+				_last_dialogue.get("phase", "?"),
+				_last_dialogue.get("reality_consistency", "?")
+			]
+		else:
+			dialogue_state_label.text = "WORLD EVENT: %s // %s" % [
+				event_name,
+				_last_dialogue.get("detail", "")
+			]
 		return
 	if status != "observed":
 		dialogue_state_label.text = "DIALOGUE: no one nearby"

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource path="res://game/main/main.gd" type="Script" id="1_main"]
 [ext_resource path="res://game/actors/hunter/Hunter.tscn" type="PackedScene" id="2_hunter"]
@@ -10,6 +10,7 @@
 [ext_resource path="res://game/protocol/runtime_observation_provider.gd" type="Script" id="8_observer"]
 [ext_resource path="res://protocol/transports/local_agent_server.gd" type="Script" id="9_agent_server"]
 [ext_resource path="res://game/world/ash_village/AshVillage.tscn" type="PackedScene" id="10_village"]
+[ext_resource path="res://game/world/fallen_arena/FallenArena.tscn" type="PackedScene" id="11_fallen_arena"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -18,6 +19,9 @@ script = ExtResource("1_main")
 
 [node name="AshVillage" parent="." instance=ExtResource("10_village")]
 position = Vector2(5000, 0)
+
+[node name="FallenArena" parent="." instance=ExtResource("11_fallen_arena")]
+position = Vector2(10000, 0)
 
 [node name="Hunter" parent="." instance=ExtResource("2_hunter")]
 position = Vector2(180, 570)
@@ -64,7 +68,7 @@ script = ExtResource("9_agent_server")
 offset_left = 30.0
 offset_top = 24.0
 offset_right = 1230.0
-offset_bottom = 570.0
+offset_bottom = 606.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
@@ -81,7 +85,7 @@ text = "Φ: NIGHT CIRCUIT"
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
 theme_override_font_sizes/font_size = 17
-text = "NC-011 // REALITY LEDGER"
+text = "NC-012 // THE FALLEN"
 
 [node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
@@ -94,7 +98,7 @@ text = "CHECKPOINT: drain_entry   |   EFFECT RECEIPTS: ARMED   |   P3: READY   |
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "R: talk/interact/bell   |   O: P3 observation   |   testimony + inspections now persist in Reality Ledger"
+text = "R: interact   |   Cistern Approach gate enters The Fallen arena   |   Φ-Bot detects impossible phase-two attacks"
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
@@ -139,3 +143,7 @@ text = "WORLD: DUSK // REALITY CONSISTENCY 92%"
 [node name="LedgerState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.92, 0.76, 0.48, 1)
 text = "LEDGER: loading"
+
+[node name="BossState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.94, 0.55, 0.58, 1)
+text = "BOSS: not engaged"

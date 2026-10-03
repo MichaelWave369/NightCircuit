@@ -16,6 +16,8 @@ REQUIRED = [
     "game/actors/phi_bot/PhiBot.tscn",
     "game/actors/enemies/drain_husk/drain_husk.gd",
     "game/actors/enemies/drain_husk/DrainHusk.tscn",
+    "game/actors/bosses/the_fallen/the_fallen.gd",
+    "game/actors/bosses/the_fallen/TheFallen.tscn",
     "game/combat/hitbox.gd",
     "game/combat/hurtbox.gd",
     "game/world/sewer_test/sewer_test_room.gd",
@@ -24,6 +26,8 @@ REQUIRED = [
     "game/world/inspection/Inspectable.tscn",
     "game/world/ash_village/ash_village.gd",
     "game/world/ash_village/AshVillage.tscn",
+    "game/world/fallen_arena/fallen_arena.gd",
+    "game/world/fallen_arena/FallenArena.tscn",
     "game/actors/npc/village_npc.gd",
     "game/actors/npc/VillageNpc.tscn",
     "protocol/actions/action_contract.gd",
@@ -49,6 +53,7 @@ REQUIRED = [
     "docs/VERTICAL_SLICE.md",
     "docs/ROADMAP.md",
     "docs/REALITY_LEDGER.md",
+    "docs/THE_FALLEN.md",
 ]
 
 missing = [path for path in REQUIRED if not (ROOT / path).is_file()]

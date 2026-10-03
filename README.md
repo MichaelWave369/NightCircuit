@@ -2,78 +2,73 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Current milestone: NC-011 — Reality Ledger
+## Current milestone: NC-012 — The Fallen
 
-Night Circuit now remembers what the party has actually learned.
+The first full boss encounter is now wired into Cistern Approach.
 
-The Reality Ledger is separate from the Action/Receipt Ledger:
+At the red cistern seal, press **R** to enter.
 
-```text
-ACTION RECEIPTS
-what was proposed / authorized / executed
+### Phase 1
 
-REALITY LEDGER
-what was claimed / observed / evidenced / contradicted
-```
-
-### Talk to both sides of a contradiction
-
-In Ash Village:
+The Fallen uses readable physical attacks:
 
 ```text
-Orin:
-east_bridge = destroyed
-
-Tamsin:
-east_bridge = present
+WHIP_STRIKE
+GROUND_SWEEP
+CROSS_THROW
+BELL_LEAP
 ```
 
-Talk to both and the ledger derives a contradiction on `east_bridge`.
+Their visible source and damage source agree.
 
-It records disagreement. It does **not** arbitrarily choose a winner.
+### Phase 2
 
-### Evidence
-
-Successful Φ-Bot INSPECT results become persistent evidence records.
-
-Passive anomaly sensing remains only a signal until the bot actually performs INSPECT.
-
-### World observations
-
-Bell transitions are recorded with phase, reality consistency, geometry revision, and world-state provenance.
-
-### Persistence
-
-The ledger autosaves to:
-
-`user://night_circuit_reality_ledger_v1.json`
-
-Repeated identical testimony is deduplicated and increments a repeat counter instead of manufacturing fake novelty.
-
-### P3
-
-External Φ-Bot observations now receive a compact Reality Ledger summary, including contradiction count, without dumping the full knowledge database into every model turn.
-
-## Current information loop
+At 50% health, the fight changes.
 
 ```text
-TALK / INSPECT / WORLD EVENT
-           |
-           v
-     REALITY LEDGER
-      /     |      \
-   CLAIM  EVIDENCE OBSERVATION
-      \      |      /
-       CONTRADICTION
-            |
-        PERSISTENCE
-            |
-       P3 SUMMARY
+CAUSAL_ECHO
 ```
+
+The boss visibly attacks from one place while damage manifests at a historical Hunter position.
+
+Φ-Bot can detect:
+
+```text
+ATTACK DETECTED:
+NO PHYSICAL SOURCE
+```
+
+That warning is actor-scoped through P3 rather than painted onto the floor for the human.
+
+### Reality Ledger
+
+The first causal anomaly is recorded as an observation with Φ-Bot provenance.
+
+Victory is recorded as direct combat evidence.
+
+### Vigil Cache
+
+There is a one-use hidden full-heal cache in suspicious masonry near the arena entrance.
+
+### After victory
+
+The **Scout Core** appears, but remains unclaimed.
+
+That is deliberate.
+
+NC-013 owns the actual Φ-Bot transformation and new ability surface.
+
+## External Φ-Bot seat
+
+The local P3 seat remains at:
+
+`127.0.0.1:36970`
+
+An external agent can therefore experience boss health, phase, attack state, and Φ-Bot-only causal anomaly signals through the same governed interface.
 
 ## Next rung
 
-**NC-012 — The Fallen:** the first boss encounter, including ordinary readable attacks and the first impossible attack source.
+**NC-013 — Scout Core:** transform Φ-Bot and unlock Resonance Ping, Anchor Mark, Enemy Read, and Contradiction Sense.
 
 ## License
 

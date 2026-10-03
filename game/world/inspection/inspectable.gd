@@ -21,6 +21,16 @@ func inspection_record() -> Dictionary:
 		"world_position": [global_position.x, global_position.y]
 	}
 
+func protocol_signal(observer_position: Vector2) -> Dictionary:
+	var delta := global_position - observer_position
+	return {
+		"object_id": object_id,
+		"category": category,
+		"confidence": confidence,
+		"distance": delta.length(),
+		"relative_position": [delta.x, delta.y]
+	}
+
 func _ready() -> void:
 	queue_redraw()
 

@@ -1,117 +1,168 @@
 # Φ Player Protocol
 
-Version: **0.2 draft**
+Version: **0.3 draft**
 
-The protocol exists so human, local AI, remote AI, replay, network, and scripted inputs can share one gameplay contract.
+The Φ Player Protocol, or **P3**, is the transport-neutral contract between a player seat and Night Circuit.
 
-## Principle
+It is designed so a human adapter, local model, remote model, network peer, replay system, or script can all use the same semantic surface without receiving direct access to scene nodes.
 
-An input source proposes an action. The game validates it, decides authority, dispatches it to the registered actor, and records what the actor reports.
+## Message boundary
 
-No external agent receives direct authority over scene nodes.
+Every adapter sends one of three message types:
 
-## Action envelope
+- `describe`
+- `observe`
+- `act`
+
+Message schema:
+
+`phi-player-protocol/message/0.3`
+
+Response schema:
+
+`phi-player-protocol/response/0.3`
+
+No networking library is part of NC-007. A future transport wraps this contract rather than redefining it.
+
+## Describe
+
+Request:
 
 ```json
 {
-  "schema": "night-circuit/action/0.2",
-  "action_id": "act-00000042",
-  "source": "agent",
-  "actor": "phi_bot",
-  "action": "INSPECT",
-  "payload": {},
-  "request_id": "optional-idempotency-key",
-  "replay_of": ""
+  "type": "describe",
+  "request_id": "req-1"
 }
 ```
 
-The Action Bus owns the session sequence and generates `action_id` when omitted.
+The response reports:
 
-## Typed payload checks
+- protocol version
+- schemas
+- registered actors
+- observable actors
+- action surfaces
 
-NC-006 performs structural checks before authority evaluation.
+This gives an agent a machine-readable handshake before it attempts play.
 
-Examples:
+## Observe
 
-- Hunter MOVE requires numeric `x`.
-- Hunter JUMP/CROUCH require Boolean `pressed`.
-- Φ-Bot MOVE requires numeric `x` and `y`.
-- Φ-Bot LIGHT validates Boolean `enabled` / `toggle` when present.
-- every payload must be a dictionary.
-
-This is intentionally small. NC-007 expands the public protocol surface.
-
-## Decision receipt
+Request:
 
 ```json
 {
-  "receipt_type": "decision",
-  "action_id": "act-00000042",
-  "sequence": 42,
-  "accepted": true,
-  "reason": "authorized",
-  "source": "agent",
+  "type": "observe",
   "actor": "phi_bot",
-  "action": "INSPECT",
-  "payload": {}
+  "request_id": "req-2"
 }
 ```
 
-A decision receipt proves the proposal was evaluated.
+Observation schema:
 
-It does not prove the requested effect happened.
+`phi-player-protocol/observation/0.3`
 
-## Effect receipt
+Example:
 
 ```json
 {
-  "receipt_type": "effect",
-  "action_id": "act-00000042",
-  "sequence": 42,
-  "status": "applied",
-  "reason": "inspection_completed",
-  "effect": {
-    "inspection": {
-      "status": "observed"
+  "observation_id": "obs-00000042",
+  "actor": "phi_bot",
+  "room": "intake_shaft",
+  "visible_entities": [
+    {
+      "id": "Hunter",
+      "kind": "hunter",
+      "distance": 91.3,
+      "position": [180, 570]
     }
-  }
-}
-```
-
-Decision and effect receipts share the same `action_id`.
-
-Effect status is one of:
-
-- `applied`
-- `noop`
-- `refused`
-- `failed`
-
-## Observation envelope
-
-```json
-{
-  "schema": "phi-player-protocol/observation/0.1",
-  "actor": "phi_bot",
-  "room": "sewer_07",
-  "visible_entities": ["hunter", "wall_17"],
+  ],
   "signals": {
-    "wall_17": {
-      "anomaly": 0.91
+    "impossible_door_trace": {
+      "object_id": "impossible_door_trace",
+      "category": "structural_anomaly",
+      "confidence": 0.93,
+      "distance": 188.0
     }
   },
   "state": {
-    "energy": 74
+    "form": "BROKEN",
+    "energy": 84
+  },
+  "capabilities": {
+    "INSPECT": {"available": true},
+    "PING": {
+      "available": false,
+      "reason": "ability_unavailable_in_broken_form"
+    }
+  },
+  "metadata": {
+    "scope": "phi_bot",
+    "checkpoint": "drain_entry",
+    "world_layer": "baseline"
   }
 }
 ```
 
-Observations remain deliberately scoped. An agent should receive only information that its actor is allowed to sense.
+## Scoped perception
 
-## Replay-oriented record
+Observations are actor-scoped.
 
-The Receipt Ledger can derive accepted actions into a replay tape.
+The Hunter and Φ-Bot do not receive a shared omniscient world dump.
 
-Replay submits through the same Action Bus with source `replay`; it does not bypass validation or authority.
+In the NC-007 sewer provider:
 
-NC-006 establishes replay semantics, not deterministic replay qualification.
+- both can perceive nearby embodied entities;
+- Φ-Bot receives anomaly signals from nearby inspectables;
+- the signal does **not** contain the full inspection finding;
+- full finding text still requires a governed INSPECT action;
+- each actor receives its own internal state and capability availability.
+
+That asymmetry is a gameplay rule, not merely a UI choice.
+
+## Act
+
+Request:
+
+```json
+{
+  "type": "act",
+  "actor": "phi_bot",
+  "action": "INSPECT",
+  "payload": {},
+  "request_id": "req-3"
+}
+```
+
+P3 forwards the action into the existing Action Bus.
+
+The response returns the correlated decision and effect receipts.
+
+P3 does not bypass:
+
+- typed action validation
+- Authority Gate
+- actor capability/state
+- effect receipt generation
+
+## Capability surface
+
+Authority and capability are intentionally different.
+
+The Authority Gate can say that PING is a valid Φ-Bot verb while Broken Form reports:
+
+```json
+{
+  "PING": {
+    "available": false,
+    "reason": "ability_unavailable_in_broken_form"
+  }
+}
+```
+
+An agent can therefore reason about what is legal, what is currently possible, and why those differ.
+
+## NC-008 handoff
+
+NC-008 should add a local external transport and player seat on top of this boundary.
+
+It should not invent another game-control API.

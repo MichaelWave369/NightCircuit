@@ -39,6 +39,15 @@ const ACTOR_ACTIONS := {
 	]
 }
 
+func is_source_allowed(source_id: String) -> bool:
+	return source_id.to_lower().strip_edges() in ALLOWED_SOURCES
+
+func actions_for_actor(actor_id: String) -> Array:
+	var normalized_id := actor_id.to_lower().strip_edges()
+	if normalized_id not in ACTOR_ACTIONS:
+		return []
+	return ACTOR_ACTIONS[normalized_id].duplicate()
+
 func evaluate(action: Dictionary) -> Dictionary:
 	var source := str(action.get("source", "unknown")).to_lower()
 	var actor := str(action.get("actor", "unknown")).to_lower()

@@ -623,6 +623,21 @@ func actor_snapshot() -> Dictionary:
 		"ledge_hanging": _ledge_hanging
 	}
 
+
+func protocol_capabilities() -> Dictionary:
+	var alive := _combat_state != CombatState.DEAD
+	return {
+		"MOVE": {"available": alive},
+		"JUMP": {"available": alive and _combat_state != CombatState.HURT},
+		"CROUCH": {"available": alive and _combat_state == CombatState.READY},
+		"LIGHT_ATTACK": {"available": _can_start_attack()},
+		"HEAVY_ATTACK": {"available": _can_start_attack()},
+		"DODGE": {"available": _can_start_dodge()},
+		"INTERACT": {"available": false, "reason": "not_implemented"},
+		"LEDGE_GRAB": {"available": false, "reason": "derived_world_event"},
+		"WALL_KICK": {"available": false, "reason": "derived_world_event"}
+	}
+
 func _draw() -> void:
 	var body_color := Color(0.56, 0.64, 0.73, 1.0)
 	var trim_color := Color(0.80, 0.88, 0.94, 1.0)

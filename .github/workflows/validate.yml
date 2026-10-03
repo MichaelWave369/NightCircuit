@@ -29,3 +29,5 @@ jobs:
         run: python scripts/validate_nc005.py
       - name: Validate NC-006 action lifecycle
         run: python scripts/validate_nc006.py
+      - name: Validate NC-007 player protocol
+        run: python scripts/validate_nc007.py

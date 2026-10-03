@@ -51,6 +51,7 @@ func build_observation(actor_id: String) -> Dictionary:
 			"checkpoint": _checkpoint_id(),
 			"world_layer": "baseline",
 			"world_phase": _world_phase(),
+			"world_state": _world_state_snapshot(),
 			"visibility_policy": "actor_scoped"
 		}
 	}
@@ -97,6 +98,11 @@ func _world_phase() -> String:
 		return str(_world.world_phase())
 	return "unknown"
 
+func _world_state_snapshot() -> Dictionary:
+	if _world != null and _world.has_method("world_state_snapshot"):
+		return _world.world_state_snapshot()
+	return {}
+
 func _visible_entities(actor_id: String, actor: Node2D) -> Array:
 	var result: Array = []
 	var max_range := HUNTER_VISIBLE_RANGE if actor_id == "hunter" else PHI_VISIBLE_RANGE
@@ -115,6 +121,8 @@ func _visible_entities(actor_id: String, actor: Node2D) -> Array:
 		if not (enemy is Node2D):
 			continue
 		var enemy_node := enemy as Node2D
+		if not enemy_node.is_visible_in_tree():
+			continue
 		var distance := actor.global_position.distance_to(enemy_node.global_position)
 		if distance > max_range:
 			continue

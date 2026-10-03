@@ -25,6 +25,7 @@ var _last_dialogue: Dictionary = {}
 @onready var protocol_state_label: Label = $HUD/MarginContainer/VBoxContainer/ProtocolState
 @onready var agent_seat_state_label: Label = $HUD/MarginContainer/VBoxContainer/AgentSeatState
 @onready var dialogue_state_label: Label = $HUD/MarginContainer/VBoxContainer/DialogueState
+@onready var world_state_label: Label = $HUD/MarginContainer/VBoxContainer/WorldState
 
 func _ready() -> void:
 	var ledger := get_node_or_null("/root/ReceiptLedger")
@@ -62,7 +63,7 @@ func _ready() -> void:
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-009"}
+			"payload": {"milestone": "NC-010"}
 		})
 
 	_update_readout()
@@ -71,6 +72,7 @@ func _ready() -> void:
 	_update_protocol_description()
 	_update_agent_seat_readout()
 	_update_dialogue_readout()
+	_update_world_state_readout()
 
 func _connect_world(target: Node) -> void:
 	if target == null:
@@ -86,9 +88,12 @@ func _connect_world(target: Node) -> void:
 		target.exit_requested.connect(_on_world_exit_requested)
 	if target.has_signal("dialogue_presented"):
 		target.dialogue_presented.connect(_on_dialogue_presented)
+	if target.has_signal("phase_changed"):
+		target.phase_changed.connect(_on_phase_changed)
 
 func _process(_delta: float) -> void:
 	_update_readout()
+	_update_world_state_readout()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
@@ -197,6 +202,7 @@ func _on_world_exit_requested(destination: String) -> void:
 	_last_dialogue = {}
 	_update_dialogue_readout()
 	_update_status(str(world.get("current_room_id")))
+	_update_world_state_readout()
 
 func _on_hunter_interaction_requested(_context: Dictionary) -> void:
 	if world == null or not world.has_method("interact_nearest"):
@@ -212,6 +218,58 @@ func _on_hunter_interaction_requested(_context: Dictionary) -> void:
 func _on_dialogue_presented(record: Dictionary) -> void:
 	_last_dialogue = record.duplicate(true)
 	_update_dialogue_readout()
+
+func _on_phase_changed(
+	previous_phase: String,
+	current_phase: String,
+	previous_consistency: int,
+	current_consistency: int
+) -> void:
+	world_state_label.text = "BELL EVENT // %s → %s // LIGHT %s // HOSTILES %s // GEOMETRY CHANGED // REALITY %s%% → %s%%" % [
+		previous_phase,
+		current_phase,
+		"↓" if current_phase == "NIGHT" else "↑",
+		"↑" if current_phase == "NIGHT" else "↓",
+		previous_consistency,
+		current_consistency
+	]
+	_last_dialogue = {
+		"status": "world_event",
+		"event": "bell",
+		"phase": current_phase,
+		"reality_consistency": current_consistency
+	}
+	_update_dialogue_readout()
+	_update_status(str(world.get("current_room_id")))
+
+func _update_world_state_readout() -> void:
+	if world == null:
+		world_state_label.text = "WORLD: unavailable"
+		return
+
+	var phase := "?"
+	var consistency := -1
+	var shop := "?"
+	var geometry_revision := 0
+	var hostiles := false
+
+	if world.has_method("world_state_snapshot"):
+		var snapshot: Dictionary = world.world_state_snapshot()
+		phase = str(snapshot.get("phase", "?"))
+		consistency = int(snapshot.get("reality_consistency", -1))
+		shop = str(snapshot.get("shop_state", "?"))
+		geometry_revision = int(snapshot.get("geometry_revision", 0))
+		hostiles = bool(snapshot.get("hostiles_active", false))
+	elif world.has_method("world_phase"):
+		phase = str(world.world_phase())
+
+	world_state_label.text = "WORLD: %s // REALITY %s%% // SHOP %s // HOSTILES %s // GEO REV %s" % [
+		phase,
+		consistency,
+		shop,
+		"ACTIVE" if hostiles else "QUIET",
+		geometry_revision
+	]
 
 func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
 	_update_agent_seat_readout()
@@ -403,7 +461,14 @@ func _update_dialogue_readout() -> void:
 		dialogue_state_label.text = "DIALOGUE: no testimony"
 		return
 
-	if str(_last_dialogue.get("status", "")) != "observed":
+	var status := str(_last_dialogue.get("status", ""))
+	if status == "world_event":
+		dialogue_state_label.text = "WORLD EVENT: BELL // phase=%s // reality=%s%%" % [
+			_last_dialogue.get("phase", "?"),
+			_last_dialogue.get("reality_consistency", "?")
+		]
+		return
+	if status != "observed":
 		dialogue_state_label.text = "DIALOGUE: no one nearby"
 		return
 

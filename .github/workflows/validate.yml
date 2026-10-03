@@ -37,3 +37,5 @@ jobs:
         run: python -m py_compile tools/p3_client.py tools/p3_ollama_agent.py
       - name: Validate NC-009 Ash Village
         run: python scripts/validate_nc009.py
+      - name: Validate NC-010 day/night state
+        run: python scripts/validate_nc010.py

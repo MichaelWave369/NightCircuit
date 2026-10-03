@@ -64,7 +64,7 @@ script = ExtResource("9_agent_server")
 offset_left = 30.0
 offset_top = 24.0
 offset_right = 1230.0
-offset_bottom = 498.0
+offset_bottom = 536.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
@@ -81,7 +81,7 @@ text = "Φ: NIGHT CIRCUIT"
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
 theme_override_font_sizes/font_size = 17
-text = "NC-009 // ASH VILLAGE"
+text = "NC-010 // DAY / NIGHT"
 
 [node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
@@ -94,7 +94,7 @@ text = "CHECKPOINT: drain_entry   |   EFFECT RECEIPTS: ARMED   |   P3: READY   |
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "R: talk/interact   |   O: P3 observation   |   reach the village lift at the far end of the Drain"
+text = "R: talk/interact   |   R at Bell Road bell: change world phase   |   O: P3 observation"
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
@@ -131,3 +131,7 @@ text = "AGENT SEAT: starting"
 [node name="DialogueState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.90, 0.84, 0.68, 1)
 text = "DIALOGUE: no testimony"
+
+[node name="WorldState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.77, 0.72, 0.94, 1)
+text = "WORLD: DUSK // REALITY CONSISTENCY 92%"

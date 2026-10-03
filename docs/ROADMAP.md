@@ -10,8 +10,9 @@
 - **NC-006 — COMPLETE:** typed actions, actor dispatch, effect receipts, replay semantics
 - **NC-007 — COMPLETE:** P3 describe/observe/act boundary and actor-scoped observations
 - **NC-008 — COMPLETE:** loopback external Φ-Bot seat and local model bridge
-- **NC-009 — COMPLETE IN THIS CHANGE:** Ash Village hub, dusk NPC schedules, governed testimony
-- **NC-010 — NEXT:** day/night world-state transition
+- **NC-009 — COMPLETE:** Ash Village hub, NPC schedules, governed testimony
+- **NC-010 — COMPLETE IN THIS CHANGE:** bell-driven day/night state, routes, hostiles, reality consistency
+- **NC-011 — NEXT:** Reality Ledger
 
 ## Vertical-slice ladder
 
@@ -26,7 +27,7 @@
 | NC-007 | Φ Player Protocol | describe/observe/act schemas and adapter boundary |
 | NC-008 | Agent seat | local external process can observe/control Φ-Bot and cannot cross into Hunter |
 | NC-009 | Ash Village | first hub loop, NPC schedules, governed testimony |
-| NC-010 | Day/night | state transition changes routes and actors |
+| NC-010 | Day/night | bell changes schedules, routes, hostiles, geometry, consistency |
 | NC-011 | Reality Ledger | evidence, claims, provenance, contradictions |
 | NC-012 | The Fallen | complete first boss encounter |
 | NC-013 | Scout Core | ping, mark, enemy read, contradiction sense |

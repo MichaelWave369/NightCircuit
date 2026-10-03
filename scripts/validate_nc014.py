@@ -59,7 +59,6 @@ require_tokens(
     "game/main/Main.tscn",
     [
         "BacktrackState",
-        "NC-014 // BACKTRACKING LOOP",
     ],
 )
 

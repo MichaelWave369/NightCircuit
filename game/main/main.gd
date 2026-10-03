@@ -32,6 +32,8 @@ var _boss_warning_timer := 0.0
 @onready var boss_state_label: Label = $HUD/MarginContainer/VBoxContainer/BossState
 @onready var scout_state_label: Label = $HUD/MarginContainer/VBoxContainer/ScoutState
 @onready var backtrack_state_label: Label = $HUD/MarginContainer/VBoxContainer/BacktrackState
+@onready var qualification_state_label: Label = $HUD/MarginContainer/VBoxContainer/QualificationState
+@onready var save_state_label: Label = $HUD/MarginContainer/VBoxContainer/SaveState
 
 func _ready() -> void:
 	var receipt_ledger := get_node_or_null("/root/ReceiptLedger")
@@ -86,7 +88,7 @@ func _ready() -> void:
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-014"}
+			"payload": {"milestone": "NC-015"}
 		})
 
 	_update_readout()
@@ -99,6 +101,8 @@ func _ready() -> void:
 	_update_ledger_readout()
 	_update_boss_readout()
 	_update_backtrack_readout()
+	_update_qualification_readout()
+	_update_save_readout()
 
 func _connect_world(target: Node) -> void:
 	if target == null:
@@ -128,6 +132,8 @@ func _connect_world(target: Node) -> void:
 		target.backtrack_route_opened.connect(_on_backtrack_route_opened)
 	if target.has_signal("backtrack_discovery"):
 		target.backtrack_discovery.connect(_on_backtrack_discovery)
+	if target.has_signal("altermath_teaser"):
+		target.altermath_teaser.connect(_on_altermath_teaser)
 
 func _process(delta: float) -> void:
 	_boss_warning_timer = maxf(0.0, _boss_warning_timer - delta)
@@ -142,6 +148,118 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.keycode == KEY_O:
 		_request_phi_observation()
+	elif event.keycode == KEY_F5:
+		_save_run()
+	elif event.keycode == KEY_F9:
+		_load_run()
+
+func _save_run() -> void:
+	var run_save := get_node_or_null("/root/RunSave")
+	if run_save == null:
+		save_state_label.text = "SAVE: unavailable"
+		return
+
+	var hunter_snapshot := {}
+	if hunter != null and hunter.has_method("actor_snapshot"):
+		hunter_snapshot = hunter.actor_snapshot()
+
+	var snapshot := {
+		"world_id": _active_world_id(),
+		"checkpoint": _current_checkpoint,
+		"hunter_position": hunter_snapshot.get("position", []),
+		"hunter_health": hunter_snapshot.get("health", 100),
+		"village_phase": ash_village.world_phase() if ash_village != null else "DUSK",
+		"safe_resume": "boss_resets_to_threshold" if world == fallen_arena else "exact_position"
+	}
+
+	var result: Dictionary = run_save.save_snapshot(snapshot)
+	if bool(result.get("ok", false)):
+		save_state_label.text = "SAVE: WRITTEN // %s // %s" % [
+			snapshot.get("world_id", "?"),
+			snapshot.get("checkpoint", "?")
+		]
+	else:
+		save_state_label.text = "SAVE: FAILED // %s" % result.get("reason", "unknown")
+
+func _load_run() -> void:
+	var run_save := get_node_or_null("/root/RunSave")
+	if run_save == null:
+		save_state_label.text = "LOAD: unavailable"
+		return
+
+	var result: Dictionary = run_save.load_snapshot()
+	if not bool(result.get("ok", false)):
+		save_state_label.text = "LOAD: FAILED // %s" % result.get("reason", "unknown")
+		return
+
+	var snapshot: Dictionary = result.get("snapshot", {})
+	_restore_run_snapshot(snapshot)
+
+func _restore_run_snapshot(snapshot: Dictionary) -> void:
+	var world_id := str(snapshot.get("world_id", "sewer"))
+	var village_phase := str(snapshot.get("village_phase", "DUSK"))
+
+	if ash_village != null and ash_village.has_method("restore_phase"):
+		ash_village.restore_phase(village_phase)
+
+	match world_id:
+		"ash_village":
+			sewer_world.set_active(false)
+			fallen_arena.set_active(false)
+			ash_village.set_active(true)
+			world = ash_village
+			ash_village.bind_hunter(hunter)
+		"fallen_arena":
+			ash_village.set_active(false)
+			sewer_world.set_active(false)
+			fallen_arena.set_active(true)
+			world = fallen_arena
+			fallen_arena.bind_hunter(hunter)
+		_:
+			ash_village.set_active(false)
+			fallen_arena.set_active(false)
+			sewer_world.set_active(true)
+			world = sewer_world
+			sewer_world.bind_hunter(hunter)
+
+	_current_checkpoint = str(snapshot.get("checkpoint", world.get("active_checkpoint_id")))
+
+	# Combat state is not serialized. A boss save resumes at the safe threshold.
+	if world != fallen_arena:
+		var saved_position = snapshot.get("hunter_position", [])
+		if saved_position is Array and saved_position.size() == 2 and hunter.has_method("force_respawn"):
+			hunter.force_respawn(Vector2(float(saved_position[0]), float(saved_position[1])))
+		if hunter.has_method("restore_health_for_load"):
+			hunter.restore_health_for_load(int(snapshot.get("hunter_health", 100)))
+
+	if runtime_observation_provider != null:
+		runtime_observation_provider.set_world(world)
+	if phi_bot != null:
+		phi_bot.bind_world(world)
+		phi_bot.reset_near_hunter()
+
+	_update_status(str(world.get("current_room_id")))
+	_update_world_state_readout()
+	_update_boss_readout()
+	_update_backtrack_readout()
+	_update_qualification_readout()
+	save_state_label.text = "LOAD: RESTORED // %s // %s" % [world_id, _current_checkpoint]
+
+func _active_world_id() -> String:
+	if world == ash_village:
+		return "ash_village"
+	if world == fallen_arena:
+		return "fallen_arena"
+	return "sewer"
+
+func _update_save_readout() -> void:
+	var run_save := get_node_or_null("/root/RunSave")
+	if run_save == null:
+		save_state_label.text = "SAVE: unavailable"
+		return
+	save_state_label.text = "SAVE: F5 write / F9 load // %s" % [
+		"SLOT PRESENT" if run_save.has_save() else "EMPTY SLOT"
+	]
 
 func _request_phi_observation() -> void:
 	var protocol := get_node_or_null("/root/PlayerProtocol")
@@ -403,6 +521,7 @@ func _record_phase_observation(
 
 func _on_reality_record_changed(_record: Dictionary) -> void:
 	_update_ledger_readout()
+	_update_qualification_readout()
 
 func _on_contradiction_detected(record: Dictionary) -> void:
 	ledger_state_label.text = "LEDGER: CONTRADICTION // subject=%s // confidence=%.2f" % [
@@ -647,6 +766,58 @@ func _update_backtrack_readout() -> void:
 		backtrack_state_label.text = "BACKTRACK: ROUTE OPEN // climb Intake Shaft upper service platforms"
 		return
 	backtrack_state_label.text = "BACKTRACK: return to INTAKE SHAFT // PING → MARK dormant anchor"
+
+func _on_altermath_teaser(record: Dictionary) -> void:
+	world_state_label.text = "ALTERMATH LAYER DETECTED // CAUSE %s // LOCAL REALITY CONSISTENCY %s%%" % [
+		record.get("cause", "UNKNOWN"),
+		record.get("local_reality_consistency", 63)
+	]
+	scout_state_label.text = "Φ-BOT // I THINK WE'VE BEEN HERE BEFORE."
+
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger != null:
+		ledger.record_observation({
+			"subject": str(record.get("subject", "altermath_layer_01")),
+			"value": record.get("value", "detected"),
+			"confidence": float(record.get("confidence", 0.63)),
+			"provenance": {
+				"source_kind": "phi_bot_altermath_detection",
+				"source_id": "phi_bot",
+				"actor": "phi_bot",
+				"room": _active_room(),
+				"phase": _active_phase()
+			},
+			"data": record.duplicate(true),
+			"dedupe_key": "observation|altermath_layer_01|detected"
+		})
+
+	_update_qualification_readout()
+
+func _update_qualification_readout() -> void:
+	var ledger := get_node_or_null("/root/RealityLedger")
+	if ledger == null or not ledger.has_method("has_record"):
+		qualification_state_label.text = "SLICE 0.1: qualification state unavailable"
+		return
+
+	var boss_done := ledger.has_record("the_fallen", "defeated", "evidence")
+	var scout_done := ledger.has_record("phi_bot_form", "SCOUT", "verified")
+	var route_done := ledger.has_record("intake_anchor_01", "route_open", "verified")
+	var vein_done := ledger.has_record("service_vein_01", "discovered", "evidence")
+	var altermath_done := ledger.has_record("altermath_layer_01", "detected", "observation")
+
+	var completed := 0
+	for gate in [boss_done, scout_done, route_done, vein_done, altermath_done]:
+		if gate:
+			completed += 1
+
+	qualification_state_label.text = "SLICE 0.1: %s/5 progression gates // BOSS %s SCOUT %s ROUTE %s VEIN %s ALTERMATH %s" % [
+		completed,
+		"✓" if boss_done else "·",
+		"✓" if scout_done else "·",
+		"✓" if route_done else "·",
+		"✓" if vein_done else "·",
+		"✓" if altermath_done else "·"
+	]
 
 func _on_agent_server_state_changed(_snapshot: Dictionary) -> void:
 	_update_agent_seat_readout()

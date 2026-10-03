@@ -1,8 +1,8 @@
 # Vertical Slice: The Drain
 
-Target: **NC-015**
+Target: **NC-015 / Vertical Slice 0.1**
 
-The slice should be small enough to finish and complete enough to prove the identity of the game.
+The slice is intentionally small enough to finish and complete enough to prove the identity of the game.
 
 ## World path
 
@@ -11,7 +11,9 @@ The Drain
    |
 Old Drainage Network
    |
-Ash Village <----> night-state routes
+Ash Village <----> day/night routes
+   |
+Reality Ledger contradiction
    |
 Abandoned Cistern
    |
@@ -21,32 +23,37 @@ Scout Core
    |
 Backtrack through old spaces
    |
-Bell Tower route
+Service Vein
    |
 ALTERMATH LAYER DETECTED
 ```
 
 ## Acceptance gate
 
-The slice is not complete until all of these are playable:
+Vertical Slice 0.1 contains all of these surfaces:
 
-- Hunter movement feels good
+- Hunter movement
 - basic melee combat
-- at least one ordinary enemy family
-- Φ-Bot follows as a world actor
-- Φ-Bot accepts governed protocol commands
-- human can command Φ-Bot
-- an external agent adapter can command Φ-Bot
+- Drain Husk ordinary enemy family
+- Φ-Bot embodied follow/hold/light/inspect behavior
+- governed Φ-Bot protocol commands
+- human Φ-Bot controls
+- external local-agent Φ-Bot seat
 - Ash Village day/night transition
-- Reality Ledger records evidence
-- at least one contradiction puzzle
-- at least one hidden Vigil Cache
+- Reality Ledger evidence/provenance
+- bridge contradiction puzzle seed and derived contradiction
+- hidden Vigil Cache
 - The Fallen boss
 - Scout Core transformation
-- backtracking exposes a previously inaccessible route
+- Scout-gated backtracking route
 - Altermath teaser
 - save/load
 - keyboard and controller support
+- headless Godot parse and boot-smoke CI
+
+## Qualification boundary
+
+NC-015 qualifies the architecture and progression loop. It does not claim final art, final tuning, broad hardware certification, or shipping polish.
 
 ## First-hour promise
 

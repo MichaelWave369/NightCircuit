@@ -282,6 +282,12 @@ func bind_hunter(target: Node2D) -> void:
 func world_phase() -> String:
 	return _phase
 
+func restore_phase(saved_phase: String) -> bool:
+	if saved_phase not in ["DAY", "DUSK", "NIGHT"]:
+		return false
+	_apply_phase(saved_phase, true)
+	return true
+
 func reality_consistency() -> int:
 	return int(REALITY_CONSISTENCY.get(_phase, 0))
 

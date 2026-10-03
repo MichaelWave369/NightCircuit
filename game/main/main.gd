@@ -1,8 +1,9 @@
 extends Node2D
 
-var _last_receipt: Dictionary = {}
 var _current_checkpoint := "drain_entry"
 var _last_inspection: Dictionary = {}
+var _last_decision: Dictionary = {}
+var _last_effect: Dictionary = {}
 
 @onready var world = $SewerTestRoom
 @onready var hunter = $Hunter
@@ -14,6 +15,7 @@ var _last_inspection: Dictionary = {}
 @onready var phi_state_label: Label = $HUD/MarginContainer/VBoxContainer/PhiState
 @onready var inspection_state_label: Label = $HUD/MarginContainer/VBoxContainer/InspectionState
 @onready var receipt_label: Label = $HUD/MarginContainer/VBoxContainer/ReceiptLabel
+@onready var replay_state_label: Label = $HUD/MarginContainer/VBoxContainer/ReplayState
 
 func _ready() -> void:
 	var ledger := get_node_or_null("/root/ReceiptLedger")
@@ -37,15 +39,16 @@ func _ready() -> void:
 
 	var bus := get_node_or_null("/root/ActionBus")
 	if bus != null:
-		_last_receipt = bus.submit({
+		bus.submit({
 			"source": "system",
 			"actor": "system",
 			"action": "BOOT",
-			"payload": {"milestone": "NC-005"}
+			"payload": {"milestone": "NC-006"}
 		})
-		_update_receipt_label()
 
 	_update_readout()
+	_update_receipt_readout()
+	_update_replay_readout()
 
 func _process(_delta: float) -> void:
 	_update_readout()
@@ -64,7 +67,7 @@ func _send_phi_ping() -> void:
 	if world != null:
 		room_id = world.current_room_id
 
-	_last_receipt = bus.submit({
+	bus.submit({
 		"source": "human",
 		"actor": "phi_bot",
 		"action": "PING",
@@ -73,7 +76,6 @@ func _send_phi_ping() -> void:
 			"room": room_id
 		}
 	})
-	_update_receipt_label()
 
 func _on_room_changed(room_id: String, room_title: String) -> void:
 	room_label.text = "ROOM: %s" % room_title
@@ -98,8 +100,15 @@ func _on_phi_inspect_result(result: Dictionary) -> void:
 	_update_inspection_readout()
 
 func _on_receipt_appended(receipt: Dictionary) -> void:
-	_last_receipt = receipt
-	_update_receipt_label()
+	match str(receipt.get("receipt_type", "")):
+		"decision":
+			_last_decision = receipt.duplicate(true)
+			_last_effect = {}
+		"effect":
+			_last_effect = receipt.duplicate(true)
+
+	_update_receipt_readout()
+	_update_replay_readout()
 
 func _update_status(room_id: String) -> void:
 	var mode := "?"
@@ -116,19 +125,50 @@ func _update_status(room_id: String) -> void:
 		form
 	]
 
-func _update_receipt_label() -> void:
-	if _last_receipt.is_empty():
+func _update_receipt_readout() -> void:
+	if _last_decision.is_empty():
 		receipt_label.text = "RECEIPT: waiting"
 		return
 
-	var result := "ACCEPTED" if _last_receipt.get("accepted", false) else "REJECTED"
-	receipt_label.text = "RECEIPT #%s: %s // %s.%s // %s" % [
-		_last_receipt.get("sequence", "?"),
-		result,
-		_last_receipt.get("actor", "?"),
-		_last_receipt.get("action", "?"),
-		_last_receipt.get("reason", "unknown")
+	var decision_text := "ACCEPTED" if _last_decision.get("accepted", false) else "REJECTED"
+	var action_id := str(_last_decision.get("action_id", "?"))
+
+	if not bool(_last_decision.get("accepted", false)):
+		receipt_label.text = "%s  %s.%s  DECISION: %s (%s)" % [
+			action_id,
+			_last_decision.get("actor", "?"),
+			_last_decision.get("action", "?"),
+			decision_text,
+			_last_decision.get("reason", "unknown")
+		]
+		return
+
+	if _last_effect.is_empty() or str(_last_effect.get("action_id", "")) != action_id:
+		receipt_label.text = "%s  %s.%s  DECISION: %s  |  EFFECT: pending" % [
+			action_id,
+			_last_decision.get("actor", "?"),
+			_last_decision.get("action", "?"),
+			decision_text
+		]
+		return
+
+	receipt_label.text = "%s  %s.%s  DECISION: %s  |  EFFECT: %s (%s)" % [
+		action_id,
+		_last_decision.get("actor", "?"),
+		_last_decision.get("action", "?"),
+		decision_text,
+		str(_last_effect.get("status", "?")).to_upper(),
+		_last_effect.get("reason", "unknown")
 	]
+
+func _update_replay_readout() -> void:
+	var ledger := get_node_or_null("/root/ReceiptLedger")
+	if ledger == null or not ledger.has_method("replay_tape"):
+		replay_state_label.text = "REPLAY TAPE: unavailable"
+		return
+
+	var tape: Dictionary = ledger.replay_tape()
+	replay_state_label.text = "REPLAY TAPE: %s accepted actions" % tape.get("entry_count", 0)
 
 func _update_readout() -> void:
 	_update_hunter_readout()

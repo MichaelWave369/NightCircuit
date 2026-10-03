@@ -1,12 +1,12 @@
 # Φ Player Protocol
 
-Version: **0.1 draft**
+Version: **0.2 draft**
 
 The protocol exists so human, local AI, remote AI, replay, network, and scripted inputs can share one gameplay contract.
 
 ## Principle
 
-An input source proposes an action. The game decides whether that action is authorized and valid.
+An input source proposes an action. The game validates it, decides authority, dispatches it to the registered actor, and records what the actor reports.
 
 No external agent receives direct authority over scene nodes.
 
@@ -14,23 +14,78 @@ No external agent receives direct authority over scene nodes.
 
 ```json
 {
+  "schema": "night-circuit/action/0.2",
+  "action_id": "act-00000042",
   "source": "agent",
   "actor": "phi_bot",
-  "action": "PING",
-  "payload": {
-    "target": "wall_17"
+  "action": "INSPECT",
+  "payload": {},
+  "request_id": "optional-idempotency-key",
+  "replay_of": ""
+}
+```
+
+The Action Bus owns the session sequence and generates `action_id` when omitted.
+
+## Typed payload checks
+
+NC-006 performs structural checks before authority evaluation.
+
+Examples:
+
+- Hunter MOVE requires numeric `x`.
+- Hunter JUMP/CROUCH require Boolean `pressed`.
+- Φ-Bot MOVE requires numeric `x` and `y`.
+- Φ-Bot LIGHT validates Boolean `enabled` / `toggle` when present.
+- every payload must be a dictionary.
+
+This is intentionally small. NC-007 expands the public protocol surface.
+
+## Decision receipt
+
+```json
+{
+  "receipt_type": "decision",
+  "action_id": "act-00000042",
+  "sequence": 42,
+  "accepted": true,
+  "reason": "authorized",
+  "source": "agent",
+  "actor": "phi_bot",
+  "action": "INSPECT",
+  "payload": {}
+}
+```
+
+A decision receipt proves the proposal was evaluated.
+
+It does not prove the requested effect happened.
+
+## Effect receipt
+
+```json
+{
+  "receipt_type": "effect",
+  "action_id": "act-00000042",
+  "sequence": 42,
+  "status": "applied",
+  "reason": "inspection_completed",
+  "effect": {
+    "inspection": {
+      "status": "observed"
+    }
   }
 }
 ```
 
-Required semantic fields:
+Decision and effect receipts share the same `action_id`.
 
-- `source`: human, gamepad, agent, network, replay, script, or system
-- `actor`: registered world actor
-- `action`: verb from that actor's capability surface
-- `payload`: action-specific dictionary
+Effect status is one of:
 
-The Action Bus adds a monotonic session sequence.
+- `applied`
+- `noop`
+- `refused`
+- `failed`
 
 ## Observation envelope
 
@@ -51,35 +106,12 @@ The Action Bus adds a monotonic session sequence.
 }
 ```
 
-Observations are deliberately scoped. An agent should receive only information that its actor is allowed to sense.
+Observations remain deliberately scoped. An agent should receive only information that its actor is allowed to sense.
 
-## Receipt envelope
+## Replay-oriented record
 
-```json
-{
-  "sequence": 42,
-  "accepted": true,
-  "reason": "authorized",
-  "source": "agent",
-  "actor": "phi_bot",
-  "action": "PING",
-  "payload": {
-    "target": "wall_17"
-  },
-  "unix_time": 1790980000
-}
-```
+The Receipt Ledger can derive accepted actions into a replay tape.
 
-A receipt proves that the game evaluated the proposal. It does **not** by itself prove the action produced its intended world effect. Effect receipts will be added when actor execution arrives.
+Replay submits through the same Action Bus with source `replay`; it does not bypass validation or authority.
 
-## NC-001 scope
-
-NC-001 provides:
-
-- Action Bus
-- Authority Gate
-- in-memory receipt ledger
-- observation builder
-- one interactive boot-scene smoke path
-
-It does not connect an LLM, WebSocket, or network provider yet.
+NC-006 establishes replay semantics, not deterministic replay qualification.

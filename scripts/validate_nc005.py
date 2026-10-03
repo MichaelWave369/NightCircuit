@@ -65,6 +65,7 @@ require_tokens(
     ],
 )
 
+# Preserve embodied Φ-Bot and inspectable capabilities, not a milestone label.
 require_tokens(
     "game/main/Main.tscn",
     [
@@ -73,7 +74,8 @@ require_tokens(
         "Inspectable.tscn",
         "ImpossibleDoorTrace",
         "VigilCacheTrace",
-        "NC-005 // Φ-BOT ENTITY",
+        "PhiState",
+        "InspectionState",
     ],
 )
 

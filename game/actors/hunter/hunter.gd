@@ -92,9 +92,7 @@ func _ready() -> void:
 
 	var bus := get_node_or_null("/root/ActionBus")
 	if bus != null:
-		var callback := Callable(self, "_on_action_accepted")
-		if not bus.is_connected("action_accepted", callback):
-			bus.connect("action_accepted", callback)
+		bus.register_actor(ACTOR_ID, Callable(self, "execute_action"))
 
 	camera.enabled = true
 	_set_crouched(false)
@@ -103,6 +101,78 @@ func _ready() -> void:
 	_update_attack_hitbox_transform()
 	health_changed.emit(health, max_health)
 	queue_redraw()
+
+func _exit_tree() -> void:
+	var bus := get_node_or_null("/root/ActionBus")
+	if bus != null:
+		bus.unregister_actor(ACTOR_ID, Callable(self, "execute_action"))
+
+func execute_action(action: Dictionary) -> Dictionary:
+	if str(action.get("actor", "")).to_lower() != ACTOR_ID:
+		return _effect("refused", "actor_mismatch")
+
+	control_source = str(action.get("source", control_source)).to_lower()
+	var action_name := str(action.get("action", "")).to_upper()
+	var payload = action.get("payload", {})
+	if not (payload is Dictionary):
+		return _effect("failed", "payload_not_dictionary")
+
+	match action_name:
+		"MOVE":
+			_move_intent = clampf(float(payload.get("x", 0.0)), -1.0, 1.0)
+			if absf(_move_intent) > 0.05:
+				_facing = 1 if _move_intent > 0.0 else -1
+			return _effect("applied", "move_intent_updated", {"x": _move_intent})
+		"JUMP":
+			var pressed := bool(payload.get("pressed", true))
+			if pressed:
+				_jump_buffer_timer = JUMP_BUFFER_TIME
+				return _effect("applied", "jump_buffered", {"buffer_seconds": JUMP_BUFFER_TIME})
+			_jump_release_pending = true
+			return _effect("applied", "jump_release_queued")
+		"CROUCH":
+			_crouch_intent = bool(payload.get("pressed", false))
+			return _effect("applied", "crouch_intent_updated", {"pressed": _crouch_intent})
+		"LIGHT_ATTACK":
+			if not _can_start_attack():
+				return _effect("refused", "combat_action_unavailable")
+			_start_attack(CombatState.LIGHT)
+			return _effect("applied", "light_attack_started")
+		"HEAVY_ATTACK":
+			if not _can_start_attack():
+				return _effect("refused", "combat_action_unavailable")
+			_start_attack(CombatState.HEAVY)
+			return _effect("applied", "heavy_attack_started")
+		"DODGE":
+			if not _can_start_dodge():
+				return _effect("refused", "dodge_unavailable")
+			_start_dodge()
+			return _effect("applied", "dodge_started", {"invulnerability_seconds": DODGE_DURATION})
+		"LEDGE_GRAB", "WALL_KICK":
+			return _effect("refused", "derived_movement_event_not_command")
+		"INTERACT":
+			return _effect("refused", "interact_not_implemented")
+		_:
+			return _effect("refused", "action_not_implemented")
+
+func _effect(status: String, reason: String, detail: Dictionary = {}) -> Dictionary:
+	return {
+		"status": status,
+		"reason": reason,
+		"effect": detail
+	}
+
+func _can_start_attack() -> bool:
+	return _combat_state == CombatState.READY and not _ledge_hanging and not _is_crouching
+
+func _can_start_dodge() -> bool:
+	if _combat_state != CombatState.READY or _ledge_hanging:
+		return false
+	if _is_crouching:
+		ceiling_ray.force_raycast_update()
+		if ceiling_ray.is_colliding():
+			return false
+	return true
 
 func _physics_process(delta: float) -> void:
 	_damage_invulnerability_timer = maxf(0.0, _damage_invulnerability_timer - delta)
@@ -141,37 +211,8 @@ func _physics_process(delta: float) -> void:
 	_update_attack_hitbox_transform()
 	queue_redraw()
 
-func _on_action_accepted(action: Dictionary, _receipt: Dictionary) -> void:
-	if str(action.get("actor", "")).to_lower() != ACTOR_ID:
-		return
-
-	var action_name := str(action.get("action", "")).to_upper()
-	var payload = action.get("payload", {})
-	if not (payload is Dictionary):
-		return
-
-	match action_name:
-		"MOVE":
-			_move_intent = clampf(float(payload.get("x", 0.0)), -1.0, 1.0)
-			if absf(_move_intent) > 0.05:
-				_facing = 1 if _move_intent > 0.0 else -1
-		"JUMP":
-			var pressed := bool(payload.get("pressed", true))
-			if pressed:
-				_jump_buffer_timer = JUMP_BUFFER_TIME
-			else:
-				_jump_release_pending = true
-		"CROUCH":
-			_crouch_intent = bool(payload.get("pressed", false))
-		"LIGHT_ATTACK":
-			_start_attack(CombatState.LIGHT)
-		"HEAVY_ATTACK":
-			_start_attack(CombatState.HEAVY)
-		"DODGE":
-			_start_dodge()
-
 func _start_attack(kind: int) -> void:
-	if _combat_state != CombatState.READY or _ledge_hanging or _is_crouching:
+	if not _can_start_attack():
 		return
 
 	if kind != CombatState.LIGHT and kind != CombatState.HEAVY:
@@ -184,7 +225,7 @@ func _start_attack(kind: int) -> void:
 	queue_redraw()
 
 func _start_dodge() -> void:
-	if _combat_state != CombatState.READY or _ledge_hanging:
+	if not _can_start_dodge():
 		return
 
 	if _is_crouching and not _try_stand():

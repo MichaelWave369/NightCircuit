@@ -6,57 +6,79 @@ Night Circuit combines deliberate 2D exploration, towns that change with the nig
 
 > An agent is never merely dialogue. If it inhabits the world, it can act upon the world.
 
-## Current milestone: NC-005 — Φ-Bot Entity
+## Current milestone: NC-006 — Action Bus Hardening
 
-Φ-Bot is now an embodied world actor instead of a reserved icon.
+NC-006 makes the command lifecycle auditable end to end.
 
-The Broken Form supports:
-
-- **FOLLOW** — trail the Hunter with a floating offset
-- **HOLD** — stop and remain at the current position
-- **LIGHT** — project a visible local illumination field while consuming energy
-- **INSPECT** — examine the nearest inspectable world object and return a structured result
-- energy drain and recharge
-- state snapshots suitable for future observations
-- governed commands through the same Action Bus used by every other player seat
-
-### Φ-Bot controls
-
-| Input | Command |
-|---|---|
-| F | Follow |
-| H | Hold |
-| Q | Toggle Light |
-| E | Inspect nearest object |
-| P | Existing governed PING smoke action |
-
-Combat and movement controls remain unchanged.
-
-## Current route
-
-The sewer now contains prototype inspectables, including an impossible-door trace and a Night War emergency cache marker. These are deliberately primitive evidence targets, not final art or final Reality Ledger integration.
-
-## Architecture
+Every proposal now moves through:
 
 ```text
-Human command
-     |
-HumanInputAdapter
-     |
-Action Bus
-     |
-Authority Gate
-     |
-   Φ-Bot
-   / | \
-move light inspect
+INPUT SOURCE
+    |
+    v
+TYPED ACTION CONTRACT
+    |
+    v
+AUTHORITY GATE
+    |
+    +---- decision receipt
+    |
+    v
+REGISTERED ACTOR EXECUTOR
+    |
+    +---- effect receipt
+    |
+    v
+REPLAY-ORIENTED LEDGER
 ```
 
-The input adapter does not hold a Φ-Bot reference and cannot directly mutate its position, energy, light state, or inspection results.
+A command being authorized no longer gets confused with a command actually doing something. Humanity has spent enough decades learning that distinction in distributed systems.
+
+### What is new
+
+- versioned action envelope
+- generated action IDs
+- optional request-ID deduplication
+- typed payload validation
+- registered actor executors
+- separate decision and effect receipts
+- effect statuses: applied / noop / refused / failed
+- accepted-action replay tape
+- replay submissions travel through the same governed bus
+
+### Visible example
+
+Press **P** for Φ-Bot PING.
+
+In Broken Form:
+
+```text
+DECISION: ACCEPTED
+EFFECT: REFUSED
+reason: ability_unavailable_in_broken_form
+```
+
+That is intentional. PING is a legitimate Φ-Bot capability surface, but Broken Form does not possess the installed ability yet.
+
+## Controls
+
+| Input | Action |
+|---|---|
+| A / D or arrows | Move |
+| Space / W / Up | Jump / wall kick |
+| S / Down | Crouch / ledge drop |
+| J / Z | Light attack |
+| K / X | Heavy attack |
+| C / L | Dodge |
+| F | Φ-Bot Follow |
+| H | Φ-Bot Hold |
+| Q | Φ-Bot Light |
+| E | Φ-Bot Inspect |
+| P | Φ-Bot PING test |
 
 ## Next rung
 
-**NC-006 — Action Bus Hardening:** typed action contracts, actor execution results, effect receipts, and replay-oriented semantics.
+**NC-007 — Φ Player Protocol:** formalize the observation/action schemas and adapter boundary that an external agent seat will consume.
 
 ## License
 

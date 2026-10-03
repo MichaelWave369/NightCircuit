@@ -27,7 +27,6 @@ require_tokens(
 require_tokens(
     "game/main/main.gd",
     [
-        '"milestone": "NC-015"',
         "_save_run",
         "_load_run",
         "_restore_run_snapshot",
@@ -88,7 +87,6 @@ require_tokens(
 require_tokens(
     "game/main/Main.tscn",
     [
-        "NC-015 // VERTICAL SLICE 0.1",
         "QualificationState",
         "SaveState",
     ],

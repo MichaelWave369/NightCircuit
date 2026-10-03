@@ -16,6 +16,7 @@ ReceiptLedger="*res://protocol/receipts/receipt_ledger.gd"
 PlayerProtocol="*res://protocol/player_protocol.gd"
 RealityLedger="*res://game/reality/reality_ledger.gd"
 RunSave="*res://game/save/run_save.gd"
+PlaytestRecorder="*res://game/qualification/playtest_recorder.gd"
 
 [display]
 

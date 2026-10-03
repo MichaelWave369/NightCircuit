@@ -2,54 +2,59 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Current milestone: NC-009 — Ash Village
+## Current milestone: NC-010 — Day / Night
 
-The Drain now opens into the first real hub: **Ash Village at dusk**.
+Ash Village now changes when the bell rings.
 
-The village has three districts, moving NPC schedules, governed conversation, conflicting testimony, and a locked road toward the Bell Tower.
+Approach the Bell Road bell and press **R**.
 
 ```text
-THE DRAIN
-   |
-village lift
-   |
-ASH GATE
-   |
-MARKET SQUARE
-   |
-BELL ROAD
-   |
-BELL TOWER [LOCKED]
+DUSK
+  |
+ BELL
+  v
+NIGHT
+  |
+ BELL
+  v
+ DAY
+  |
+ BELL
+  v
+NIGHT ...
 ```
 
-### Talk to people
+This is not merely a lighting toggle.
 
-Press **R** near a villager.
+At Night:
 
-Conversation is routed through Hunter `INTERACT` on the Action Bus rather than calling an NPC directly.
+- NPC schedules change
+- some NPCs disappear indoors while others emerge
+- testimony can change
+- Mara's shop closes
+- Drain Husks enter the village
+- Bell Road geometry changes
+- an elevated route appears while the direct path is obstructed
+- Φ-Bot detects stronger temporal resonance and a route discontinuity
+- reality consistency falls from the dusk baseline
 
-Current residents already disagree about reality:
+Prototype consistency values:
 
-- Orin says the east bridge collapsed twenty years ago.
-- Tamsin says she crossed it this morning.
-- Mara warns that the three bells must not agree.
-- Nell remembers a door under the clock that adults deny.
+```text
+DAY   96%
+DUSK  92%
+NIGHT 81%
+```
 
-These are structured testimony records, ready for the Reality Ledger on NC-011.
+P3 observations expose the current phase and world-state diagnostics without bypassing scoped perception.
 
-### Schedules
+## External Φ-Bot seat
 
-Ash Village is frozen at **DUSK** for NC-009.
-
-NPCs rotate through deterministic dusk schedule slots every 18 seconds, changing their location and activity. NC-010 will switch the schedule substrate between actual day/night world states.
-
-### P3
-
-The external Φ-Bot seat remains live at:
+The local P3 seat remains available at:
 
 `127.0.0.1:36970`
 
-P3 observations in the village can now include nearby NPCs and, near Bell Road, a passive bell-tower resonance signal.
+An external model can therefore experience the same day/night transition through observations and legal Φ-Bot actions.
 
 ## Controls
 
@@ -61,7 +66,7 @@ P3 observations in the village can now include nearby NPCs and, near Bell Road, 
 | J / Z | Light attack |
 | K / X | Heavy attack |
 | C / L | Dodge |
-| R | Talk / interact |
+| R | Talk / interact / ring Bell Road bell |
 | F | Φ-Bot Follow |
 | H | Φ-Bot Hold |
 | Q | Φ-Bot Light |
@@ -71,7 +76,7 @@ P3 observations in the village can now include nearby NPCs and, near Bell Road, 
 
 ## Next rung
 
-**NC-010 — Day / Night:** the bell changes NPC schedules, routes, hostiles, geometry, and reality consistency.
+**NC-011 — Reality Ledger:** persist claims, observations, evidence, provenance, confidence, and contradictions so noticing the wrongness becomes actual progression.
 
 ## License
 

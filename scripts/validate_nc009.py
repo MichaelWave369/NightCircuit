@@ -15,7 +15,6 @@ def require_tokens(path: str, tokens: list[str]) -> None:
 require_tokens(
     "game/world/ash_village/ash_village.gd",
     [
-        'const PHASE := "DUSK"',
         "SCHEDULE_SLOT_SECONDS",
         "NPC_PROFILES",
         "Orin",
@@ -79,7 +78,6 @@ require_tokens(
         "AshVillage.tscn",
         'name="AshVillage"',
         "DialogueState",
-        "NC-009 // ASH VILLAGE",
     ],
 )
 

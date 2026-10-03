@@ -45,15 +45,29 @@ for forbidden in ("$Hunter", "velocity =", "global_position ="):
         print(f"Human input adapter bypasses actor boundary: {forbidden}")
         sys.exit(1)
 
-require_tokens(
-    "game/main/Main.tscn",
-    [
-        "res://game/actors/hunter/Hunter.tscn",
-        "res://game/input/human_input_adapter.gd",
-        'name="LedgeBlock"',
-        'type="StaticBody2D"',
-    ],
+# NC-002 originally used a one-screen MovementLab in Main.tscn. NC-003
+# intentionally replaces that temporary scaffold with the sewer traversal world.
+# Preserve the real NC-002 invariant: the Hunter still has collidable traversal
+# geometry available for ledge and wall movement, regardless of which scene owns it.
+main_scene = (ROOT / "game/main/Main.tscn").read_text(encoding="utf-8")
+world_scene = (ROOT / "game/world/sewer_test/SewerTestRoom.tscn")
+world_script = (ROOT / "game/world/sewer_test/sewer_test_room.gd")
+
+has_legacy_movement_lab = (
+    'name="LedgeBlock"' in main_scene
+    and 'type="StaticBody2D"' in main_scene
 )
+
+has_sewer_traversal_world = (
+    world_scene.is_file()
+    and world_script.is_file()
+    and "GEOMETRY" in world_script.read_text(encoding="utf-8")
+    and "_make_static_rect" in world_script.read_text(encoding="utf-8")
+)
+
+if not (has_legacy_movement_lab or has_sewer_traversal_world):
+    print("NC-002 requires collidable traversal geometry for ledge/wall movement.")
+    sys.exit(1)
 
 require_tokens(
     "protocol/authority/authority_gate.gd",

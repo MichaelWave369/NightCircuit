@@ -68,7 +68,7 @@ script = ExtResource("9_agent_server")
 offset_left = 30.0
 offset_top = 24.0
 offset_right = 1230.0
-offset_bottom = 642.0
+offset_bottom = 678.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
@@ -85,7 +85,7 @@ text = "Φ: NIGHT CIRCUIT"
 [node name="Build" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.65, 0.78, 1)
 theme_override_font_sizes/font_size = 17
-text = "NC-013 // SCOUT CORE"
+text = "NC-014 // BACKTRACKING LOOP"
 
 [node name="RoomLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.48, 0.80, 0.88, 1)
@@ -98,7 +98,7 @@ text = "CHECKPOINT: drain_entry   |   EFFECT RECEIPTS: ARMED   |   P3: READY   |
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "R: claim Scout Core after The Fallen   |   P: resonance ping   T: enemy read   G: anchor mark   |   agent SCAN mode=contradiction"
+text = "After Scout Core: return to INTAKE SHAFT   |   P: ping dormant anchor   G: mark it   |   climb reconstructed Service Vein"
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
@@ -151,3 +151,7 @@ text = "BOSS: not engaged"
 [node name="ScoutState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.55, 0.86, 0.98, 1)
 text = "SCOUT: locked"
+
+[node name="BacktrackState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+theme_override_colors/font_color = Color(0.48, 0.82, 0.90, 1)
+text = "BACKTRACK: SCOUT REQUIRED"

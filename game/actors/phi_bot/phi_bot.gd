@@ -414,6 +414,15 @@ func _execute_mark(payload: Dictionary) -> Dictionary:
 		"confidence": target_record.get("confidence", 0.0),
 		"energy": energy
 	}
+
+	if _world != null and _world.has_method("apply_scout_mark"):
+		var world_effect: Dictionary = _world.apply_scout_mark(_marked_target, global_position)
+		if not world_effect.is_empty():
+			_last_scout_result["world_effect"] = world_effect
+			if str(world_effect.get("status", "")) == "applied":
+				_last_scout_result["status"] = "applied"
+				_last_scout_result["world_event"] = world_effect.get("event", "")
+
 	scout_result.emit(_last_scout_result.duplicate(true))
 	_emit_state()
 

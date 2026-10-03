@@ -45,3 +45,5 @@ jobs:
         run: python scripts/validate_nc012.py
       - name: Validate NC-013 Scout Core
         run: python scripts/validate_nc013.py
+      - name: Validate NC-014 backtracking loop
+        run: python scripts/validate_nc014.py

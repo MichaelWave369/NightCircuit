@@ -14,8 +14,9 @@
 - **NC-010 — COMPLETE:** bell-driven day/night state, routes, hostiles, reality consistency
 - **NC-011 — COMPLETE:** persistent claims/evidence/observations with provenance and derived contradictions
 - **NC-012 — COMPLETE:** The Fallen boss, causal phase-two attack, boss evidence
-- **NC-013 — COMPLETE IN THIS CHANGE:** Scout Core transformation and first progression ability surface
-- **NC-014 — NEXT:** Backtracking loop
+- **NC-013 — COMPLETE:** Scout Core transformation and first progression ability surface
+- **NC-014 — COMPLETE IN THIS CHANGE:** Scout-gated Intake backtracking route and persistent Service Vein discovery
+- **NC-015 — NEXT:** Vertical Slice 0.1 qualification
 
 ## Vertical-slice ladder
 
@@ -35,7 +36,7 @@
 | NC-012 | The Fallen | two-phase boss with first no-physical-source attack |
 | NC-013 | Scout Core | ping, mark, enemy read, contradiction sense |
 | NC-014 | Backtracking loop | Scout opens meaningful old-route discoveries |
-| NC-015 | Vertical Slice 0.1 | The Drain is playable start to finish |
+| NC-015 | Vertical Slice 0.1 | qualify the whole loop start to finish |
 
 ## Rule
 

@@ -35,3 +35,5 @@ jobs:
         run: python scripts/validate_nc008.py
       - name: Compile external P3 clients
         run: python -m py_compile tools/p3_client.py tools/p3_ollama_agent.py
+      - name: Validate NC-009 Ash Village
+        run: python scripts/validate_nc009.py

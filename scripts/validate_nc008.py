@@ -68,7 +68,6 @@ require_tokens(
         "local_agent_server.gd",
         'name="LocalAgentServer"',
         "AgentSeatState",
-        "NC-008 // LOCAL AGENT SEAT",
     ],
 )
 

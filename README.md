@@ -2,7 +2,7 @@
 
 **An agent-native Metroidvania where human and AI players explore the same world through different senses.**
 
-## Vertical Slice 0.1 + NC-016 Playtest Harness
+## Vertical Slice 0.1 + NC-018 PixelForge Runtime Bridge
 
 The first complete slice remains:
 
@@ -11,7 +11,7 @@ Drain → Ash Village → Night → The Fallen → Scout → Backtrack
       → Service Vein → Altermath teaser
 ```
 
-NC-016 does not add another zone. It adds the machinery to learn what breaks when a human actually plays the thing.
+NC-016 added the playtest harness. NC-017 hardened first local boot. NC-018 now makes Night Circuit the second full game to implement PixelForge Runtime Bridge v1 without replacing its native Godot protocols.
 
 ### Playtest capture
 
@@ -46,7 +46,7 @@ That is more useful evidence than discovering that a Python token checker remain
 
 ## Status
 
-**Vertical Slice 0.1 hardening**
+**Vertical Slice 0.1 hardening + cross-engine runtime bridge qualification**
 
 The next changes should come from hands-on playtest evidence rather than immediate map expansion.
 
@@ -61,3 +61,16 @@ The first Windows Godot 4.3 editor launch found a parser regression in the five 
 The fix uses explicit boolean conversion for dynamic RealityLedger calls and forces `main.gd` through the executable integration-smoke preload path.
 
 If you pulled the repository before NC-017, update `main` before the first local run.
+
+
+### NC-018 PixelForge Runtime Bridge
+
+Night Circuit now exposes the same ten-method PixelForge Runtime Bridge v1
+surface as Oak Street Rumble. The adapter preserves Night Circuit's native
+PlayerProtocol, ActionBus, AuthorityGate and ReceiptLedger.
+
+Because Night Circuit is engine-clocked, the descriptor explicitly reports
+`deterministic: false`, `clockMode: "engine"`, and non-exact replay rather
+than pretending a bridge batch is a Godot physics frame.
+
+See `docs/PIXELFORGE_RUNTIME_BRIDGE.md`.

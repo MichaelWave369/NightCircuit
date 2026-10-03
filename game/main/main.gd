@@ -7,6 +7,7 @@ var _last_decision: Dictionary = {}
 var _last_effect: Dictionary = {}
 var _protocol_observe_count := 0
 var _last_dialogue: Dictionary = {}
+var _boss_warning_timer := 0.0
 
 @onready var sewer_world = $SewerTestRoom
 @onready var ash_village = $AshVillage
@@ -116,7 +117,8 @@ func _connect_world(target: Node) -> void:
 	if target.has_signal("boss_defeated"):
 		target.boss_defeated.connect(_on_boss_defeated)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_boss_warning_timer = maxf(0.0, _boss_warning_timer - delta)
 	_update_readout()
 	_update_world_state_readout()
 	_update_boss_readout()
@@ -337,6 +339,13 @@ func _update_world_state_readout() -> void:
 	if world.has_method("world_state_snapshot"):
 		var snapshot: Dictionary = world.world_state_snapshot()
 		phase = str(snapshot.get("phase", "?"))
+		if not snapshot.has("reality_consistency"):
+			world_state_label.text = "WORLD: %s // REWARD %s // BOSS ARENA %s" % [
+				phase,
+				snapshot.get("reward_state", "N/A"),
+				"COMPLETE" if snapshot.get("boss_defeated", false) else "ACTIVE"
+			]
+			return
 		consistency = int(snapshot.get("reality_consistency", -1))
 		shop = str(snapshot.get("shop_state", "?"))
 		geometry_revision = int(snapshot.get("geometry_revision", 0))
@@ -434,6 +443,7 @@ func _on_boss_state_changed(snapshot: Dictionary) -> void:
 	_update_boss_readout(snapshot)
 
 func _on_boss_anomaly(event: Dictionary) -> void:
+	_boss_warning_timer = 1.1
 	boss_state_label.text = "Φ-BOT WARNING // ATTACK DETECTED: NO PHYSICAL SOURCE // %s" % event.get("attack", "?")
 
 	var ledger := get_node_or_null("/root/RealityLedger")
@@ -474,6 +484,9 @@ func _on_boss_defeated(snapshot: Dictionary) -> void:
 		})
 
 func _update_boss_readout(snapshot: Dictionary = {}) -> void:
+	if world == fallen_arena and _boss_warning_timer > 0.0:
+		return
+
 	if world != fallen_arena:
 		boss_state_label.text = "BOSS: not engaged"
 		return

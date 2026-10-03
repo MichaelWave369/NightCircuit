@@ -165,18 +165,31 @@ func _unhandled_input(event: InputEvent) -> void:
 		_load_run()
 	elif event.keycode == KEY_F7:
 		_export_playtest_summary()
-	elif event.keycode == KEY_F8:
+	elif event.keycode == KEY_F8 or event.keycode == KEY_M:
 		_mark_playtest_checkpoint()
 
 func _mark_playtest_checkpoint() -> void:
 	var recorder := get_node_or_null("/root/PlaytestRecorder")
 	if recorder == null or not recorder.has_method("mark"):
+		playtest_state_label.text = "PLAYTEST: MARK FAILED // recorder unavailable"
 		return
-	recorder.mark("manual_checkpoint", {
+
+	var event: Dictionary = recorder.mark("manual_checkpoint", {
 		"world": _active_world_id(),
 		"room": _active_room(),
 		"checkpoint": _current_checkpoint
 	})
+
+	if event.is_empty():
+		playtest_state_label.text = "PLAYTEST: MARK FAILED // recorder disabled"
+		return
+
+	playtest_state_label.text = "PLAYTEST: MARKED #%s // %s / %s / %s" % [
+		event.get("sequence", "?"),
+		_active_world_id(),
+		_active_room(),
+		_current_checkpoint
+	]
 
 func _export_playtest_summary() -> void:
 	var recorder := get_node_or_null("/root/PlaytestRecorder")

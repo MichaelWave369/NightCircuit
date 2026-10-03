@@ -23,4 +23,8 @@ if 'preload("res://game/main/main.gd")' not in test:
     print("NC-017 integration smoke does not force-parse main.gd.")
     sys.exit(1)
 
+if "KEY_M" not in main or "PLAYTEST: MARKED" not in main:
+    print("NC-017 playtest marker fallback/feedback is missing.")
+    sys.exit(1)
+
 print("NC-017 local first-boot regression validation: PASS")

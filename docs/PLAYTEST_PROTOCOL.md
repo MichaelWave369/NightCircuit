@@ -18,7 +18,7 @@ This avoids quietly turning a normal player session into a telemetry product.
 
 ## Useful keys
 
-- **F8** adds a manual playtest marker with current world, room, and checkpoint.
+- **M** adds a manual playtest marker with current world, room, and checkpoint. **F8** remains an alias, but Godot uses F8 as an editor Stop shortcut, so M is preferred during local editor playtests.
 - **F7** exports a compact JSON session summary.
 - **F5 / F9** remain save/load.
 
@@ -61,7 +61,7 @@ For each pass, check the complete progression spine:
 13. save and reload at least once outside the boss;
 14. save and reload once in the boss arena and confirm safe-reset behavior.
 
-Press F8 whenever something feels wrong or unexpectedly good. Human memory is famously reliable right up until anyone asks for exact reproduction steps.
+Press M whenever something feels wrong or unexpectedly good. Human memory is famously reliable right up until anyone asks for exact reproduction steps.
 
 ## Summarizing a session
 

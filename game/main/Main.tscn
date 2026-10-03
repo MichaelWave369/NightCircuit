@@ -98,7 +98,7 @@ text = "CHECKPOINT: drain_entry   |   EFFECT RECEIPTS: ARMED   |   P3: READY   |
 
 [node name="Hint" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.74, 0.76, 0.82, 1)
-text = "VERTICAL SLICE 0.1 HARDENING   |   F5 save / F9 load   |   F8 playtest marker   |   F7 export summary"
+text = "VERTICAL SLICE 0.1 HARDENING   |   F5 save / F9 load   |   M marker (F8 alias)   |   F7 export summary"
 
 [node name="MovementState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.58, 0.82, 0.93, 1)
@@ -166,4 +166,4 @@ text = "SAVE: F5 write / F9 load"
 
 [node name="PlaytestState" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 theme_override_colors/font_color = Color(0.72, 0.88, 0.68, 1)
-text = "PLAYTEST: initializing"
+text = "PLAYTEST: initializing // M = marker"

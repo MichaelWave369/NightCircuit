@@ -37,7 +37,6 @@ require_tokens(
     [
         'has_method("apply_scout_mark")',
         "world_effect",
-        "backtrack_route_opened",
     ],
 )
 

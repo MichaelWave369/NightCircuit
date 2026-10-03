@@ -755,6 +755,9 @@ func _update_phi_readout() -> void:
 		snapshot.get("control_source", "?")
 	]
 
+	if str(snapshot.get("form", "")) == "SCOUT" and scout_state_label.text == "SCOUT: locked":
+		scout_state_label.text = "SCOUT: ONLINE // PING P // ENEMY READ T // MARK G // CONTRADICTION SENSE PASSIVE"
+
 func _update_inspection_readout() -> void:
 	if _last_inspection.is_empty():
 		inspection_state_label.text = "INSPECT: no observation"

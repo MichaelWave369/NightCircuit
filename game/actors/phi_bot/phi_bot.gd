@@ -327,6 +327,7 @@ func _execute_ping(_payload: Dictionary) -> Dictionary:
 		"range": PING_RANGE,
 		"signal_count": signals.size(),
 		"signals": signals,
+		"origin": [global_position.x, global_position.y],
 		"energy": energy
 	}
 	_last_scout_result = _last_ping.duplicate(true)
@@ -397,8 +398,12 @@ func _execute_mark(payload: Dictionary) -> Dictionary:
 	_has_marked_position = false
 
 	var relative = target_record.get("relative_position", [])
-	if relative is Array and relative.size() == 2:
-		_marked_world_position = global_position + Vector2(float(relative[0]), float(relative[1]))
+	var ping_origin = _last_ping.get("origin", [global_position.x, global_position.y])
+	if relative is Array and relative.size() == 2 and ping_origin is Array and ping_origin.size() == 2:
+		_marked_world_position = Vector2(float(ping_origin[0]), float(ping_origin[1])) + Vector2(
+			float(relative[0]),
+			float(relative[1])
+		)
 		_has_marked_position = true
 
 	_last_scout_result = {
@@ -579,8 +584,8 @@ func protocol_capabilities() -> Dictionary:
 			"modes": ["enemy_read", "contradiction"]
 		},
 		"MARK": {
-			"available": scout and energy >= MARK_COST and not _last_ping.is_empty(),
-			"reason": "" if scout and energy >= MARK_COST and not _last_ping.is_empty() else _mark_capability_reason()
+			"available": scout and energy >= MARK_COST and _has_ping_signals(),
+			"reason": "" if scout and energy >= MARK_COST and _has_ping_signals() else _mark_capability_reason()
 		},
 		"INTERACT": {"available": false, "reason": "not_implemented"}
 	}
@@ -592,12 +597,16 @@ func _scout_capability_reason(cost: float) -> String:
 		return "insufficient_energy"
 	return ""
 
+func _has_ping_signals() -> bool:
+	var signals = _last_ping.get("signals", {})
+	return signals is Dictionary and not signals.is_empty()
+
 func _mark_capability_reason() -> String:
 	if form_id != FORM_SCOUT:
 		return "ability_unavailable_in_broken_form"
 	if energy < MARK_COST:
 		return "insufficient_energy"
-	if _last_ping.is_empty():
+	if not _has_ping_signals():
 		return "ping_required"
 	return ""
 

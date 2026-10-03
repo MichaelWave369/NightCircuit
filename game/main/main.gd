@@ -860,11 +860,11 @@ func _update_qualification_readout() -> void:
 		qualification_state_label.text = "SLICE 0.1: qualification state unavailable"
 		return
 
-	var boss_done := ledger.has_record("the_fallen", "defeated", "evidence")
-	var scout_done := ledger.has_record("phi_bot_form", "SCOUT", "verified")
-	var route_done := ledger.has_record("intake_anchor_01", "route_open", "verified")
-	var vein_done := ledger.has_record("service_vein_01", "discovered", "evidence")
-	var altermath_done := ledger.has_record("altermath_layer_01", "detected", "observation")
+	var boss_done: bool = bool(ledger.call("has_record", "the_fallen", "defeated", "evidence"))
+	var scout_done: bool = bool(ledger.call("has_record", "phi_bot_form", "SCOUT", "verified"))
+	var route_done: bool = bool(ledger.call("has_record", "intake_anchor_01", "route_open", "verified"))
+	var vein_done: bool = bool(ledger.call("has_record", "service_vein_01", "discovered", "evidence"))
+	var altermath_done: bool = bool(ledger.call("has_record", "altermath_layer_01", "detected", "observation"))
 
 	var completed := 0
 	for gate in [boss_done, scout_done, route_done, vein_done, altermath_done]:

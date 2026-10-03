@@ -2,22 +2,23 @@ extends SceneTree
 
 const RunSaveScript = preload("res://game/save/run_save.gd")
 const RealityLedgerScript = preload("res://game/reality/reality_ledger.gd")
+const MainScript = preload("res://game/main/main.gd")
 
 var _failures: Array[String] = []
 
 func _init() -> void:
-	print("NC-016 runtime integration smoke: START")
+	print("NC-017 runtime integration smoke: START")
 	_test_run_save_roundtrip()
 	_test_reality_contradiction()
 
 	if _failures.is_empty():
-		print("NC-016 runtime integration smoke: PASS")
+		print("NC-017 runtime integration smoke: PASS")
 		quit(0)
 		return
 
 	for failure in _failures:
 		push_error(failure)
-	print("NC-016 runtime integration smoke: FAIL (%d)" % _failures.size())
+	print("NC-017 runtime integration smoke: FAIL (%d)" % _failures.size())
 	quit(1)
 
 func _test_run_save_roundtrip() -> void:

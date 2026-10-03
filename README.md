@@ -53,3 +53,11 @@ The next changes should come from hands-on playtest evidence rather than immedia
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+### NC-017 local first-boot fix
+
+The first Windows Godot 4.3 editor launch found a parser regression in the five Vertical Slice qualification booleans.
+
+The fix uses explicit boolean conversion for dynamic RealityLedger calls and forces `main.gd` through the executable integration-smoke preload path.
+
+If you pulled the repository before NC-017, update `main` before the first local run.

@@ -53,6 +53,8 @@ jobs:
         run: python scripts/validate_nc016.py
       - name: Compile playtest summarizer
         run: python -m py_compile tools/summarize_playtest.py
+      - name: Validate NC-017 local first-boot fix
+        run: python scripts/validate_nc017.py
 
   godot-runtime:
     runs-on: ubuntu-latest

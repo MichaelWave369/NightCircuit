@@ -477,9 +477,15 @@ func _update_boss_readout(snapshot: Dictionary = {}) -> void:
 		return
 
 	var boss_snapshot := snapshot
-	if boss_snapshot.is_empty() and fallen_arena != null and fallen_arena.has_method("world_state_snapshot"):
-		var arena_state: Dictionary = fallen_arena.world_state_snapshot()
-		boss_snapshot = arena_state.get("boss", {})
+	var arena_state := {}
+	if fallen_arena != null and fallen_arena.has_method("world_state_snapshot"):
+		arena_state = fallen_arena.world_state_snapshot()
+		if boss_snapshot.is_empty():
+			boss_snapshot = arena_state.get("boss", {})
+
+	if bool(arena_state.get("boss_defeated", false)) and boss_snapshot.is_empty():
+		boss_state_label.text = "THE FALLEN // DEFEATED // %s" % arena_state.get("reward_state", "REWARD UNKNOWN")
+		return
 
 	if boss_snapshot.is_empty():
 		boss_state_label.text = "THE FALLEN: state unavailable"

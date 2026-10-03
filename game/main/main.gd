@@ -262,6 +262,8 @@ func _update_world_state_readout() -> void:
 		hostiles = bool(snapshot.get("hostiles_active", false))
 	elif world.has_method("world_phase"):
 		phase = str(world.world_phase())
+		world_state_label.text = "WORLD: %s // PHASE DIAGNOSTICS INACTIVE" % phase
+		return
 
 	world_state_label.text = "WORLD: %s // REALITY %s%% // SHOP %s // HOSTILES %s // GEO REV %s" % [
 		phase,

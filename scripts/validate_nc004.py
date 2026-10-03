@@ -81,13 +81,15 @@ require_tokens(
     ],
 )
 
+# Preserve the NC-004 gameplay invariant, not the old milestone label.
+# Later rungs are expected to update HUD/build text while keeping combat live.
 require_tokens(
     "game/main/Main.tscn",
     [
         "DrainHusk.tscn",
         "DrainHuskA",
         "DrainHuskB",
-        "NC-004 // COMBAT FOUNDATION",
+        "CombatState",
     ],
 )
 
